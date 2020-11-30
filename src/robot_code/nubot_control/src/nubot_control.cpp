@@ -24,6 +24,7 @@
 #define RUN 1
 #define FLY -1
 const double DEG2RAD = 1.0/180.0*SINGLEPI_CONSTANT;     // 角度到弧度的转换
+                                                        //Angle to radians conversion
 
 using namespace std;
 namespace nubot{
@@ -47,7 +48,7 @@ public:
 
     boost::shared_ptr<ros::NodeHandle> nh_;
 public:
-    World_Model_Info world_model_info_;  /** 世界模型中的信息赋值，来源于world_model节点的topic*/
+    World_Model_Info world_model_info_;  /** 世界模型中的信息赋值，来源于world_model节点的topic The information assignment in the world model comes from the topic of the world_model node*/
     Strategy  * m_strategy_;
     Plan   m_plan_;
     StaticPass m_staticpass_;
@@ -85,7 +86,7 @@ public:
 	nh_ = boost::make_shared<ros::NodeHandle>(robot_name);
 #else
         nh_ = boost::make_shared<ros::NodeHandle>();
-        // 读取机器人标号，并赋值. 在 .bashrc 中输入export AGENT=1，2，3，4，等等；
+        // 读取机器人标号，并赋值. 在 .bashrc 中输入export AGENT=1，2，3，4，等等； Read the robot label and assign it. Enter export AGENT=1, 2, 3, 4, etc. in .bashrc;
         if((environment = getenv("AGENT"))==NULL)
         {
             ROS_ERROR("this agent number is not read by robot");
@@ -104,7 +105,7 @@ public:
         ballisholding_sub_ = nh_->subscribe("ballisholding/BallIsHolding",1,&NuBotControl::update_ballisholding,this);
         //ballinfo3d_sub1_    = nh_->subscribe("kinect/ballinfo",1, &NuBotControl::ballInfo3dCallback, this);
         control_timer_      = nh_->createTimer(ros::Duration(0.015),&NuBotControl::loopControl,this);
-        world_model_info_.AgentID_ = atoi(environment); /** 机器人标号*/
+        world_model_info_.AgentID_ = atoi(environment); /** 机器人标号 Robot label*/
         world_model_info_.CoachInfo_.MatchMode = STOPROBOT;
         m_plan_.world_model_ =  & world_model_info_;
         m_plan_.m_subtargets_.world_model_ =  & world_model_info_;
@@ -137,6 +138,7 @@ public:
     update_world_model_info(const nubot_common::WorldModelInfo & _world_msg)
     {
         /** 更新PathPlan自身与队友的信息，自身的策略信息记住最好不要更新，因为本身策略是从此传过去的*/
+        /** Update PathPlan’s own information and teammates’ information. Remember that it’s best not to update your own strategy information, because your strategy has been passed on*/
         for(std::size_t i = 0 ; i < OUR_TEAM ; i++)
         {
             world_model_info_.RobotInfo_[i].setID(_world_msg.robotinfo[i].AgentID);
@@ -157,6 +159,8 @@ public:
             world_model_info_.RobotInfo_[i].setValid(_world_msg.robotinfo[i].isvalid);
             world_model_info_.RobotInfo_[i].setW(_world_msg.robotinfo[i].vrot);
             /** 信息是来源于队友，则要更新机器人策略信息*/
+            /** If the information comes from teammates, the robot strategy information must be updated */
+
 //            if(world_model_info_.AgentID_ != i+1)
 //            {
                 world_model_info_.RobotInfo_[i].setDribbleState(_world_msg.robotinfo[i].isdribble);
@@ -165,7 +169,7 @@ public:
                 world_model_info_.RobotInfo_[i].setTarget(DPoint(_world_msg.robotinfo[i].target.x,_world_msg.robotinfo[i].target.y));
 //            }
         }
-        /** 更新障碍物信息*/
+        /** 更新障碍物信息 Update obstacle information*/
         world_model_info_.Obstacles_.clear();
         for(nubot_common::Point2d point : _world_msg.obstacleinfo.pos )
             world_model_info_.Obstacles_.push_back(DPoint(point.x,point.y));
@@ -174,7 +178,7 @@ public:
         for(nubot_common::Point2d point : _world_msg.oppinfo.pos )
             world_model_info_.Opponents_.push_back(DPoint(point.x,point.y));
 ///        std::cout<<"opponents "<<world_model_info_.Opponents_.size()<<"  "<<world_model_info_.AgentID_<<std::endl;
-        /** 更新足球物信息*/
+        /** 更新足球物信息 Update football information*/
         for(std::size_t i = 0 ; i < OUR_TEAM ; i++)
         {
             world_model_info_.BallInfo_[i].setGlobalLocation(DPoint(_world_msg.ballinfo[i].pos.x ,_world_msg.ballinfo[i].pos.y));
@@ -187,11 +191,11 @@ public:
         }
         world_model_info_.BallInfoState_ = _world_msg.ballinfo[world_model_info_.AgentID_-1].ballinfostate;
 
-        /** 更新的COACH信息*/
+        /** 更新的COACH信息 Updated coach information*/
         world_model_info_.CoachInfo_.MatchMode =_world_msg.coachinfo.MatchMode;
         world_model_info_.CoachInfo_.MatchType =_world_msg.coachinfo.MatchType;
 
-        /** 更新传球信息*/
+        /** 更新传球信息 Update pass information*/
         world_model_info_.pass_cmds_.catchrobot_id  = _world_msg.pass_cmd.catch_id;
         world_model_info_.pass_cmds_.passrobot_id   = _world_msg.pass_cmd.pass_id;
         world_model_info_.pass_cmds_.isvalid        = _world_msg.pass_cmd.is_valid;
@@ -201,7 +205,7 @@ public:
         world_model_info_.pass_cmds_.pass_pt    = DPoint(_world_msg.pass_cmd.pass_pt.x,_world_msg.pass_cmd.pass_pt.y);
         world_model_info_.pass_cmds_.catch_pt   = DPoint(_world_msg.pass_cmd.catch_pt.x,_world_msg.pass_cmd.catch_pt.y);
 
-        /** 这个先如此改，之后将所有数据用world_model_进行传递*/
+        /** 这个先如此改，之后将所有数据用world_model_进行传递 This is changed first, and then all the data is passed with world_model_*/
         m_strategy_->goalie_strategy_.robot_info_    = _world_msg.robotinfo[world_model_info_.AgentID_-1];
         m_strategy_->goalie_strategy_.ball_info_2d_  = _world_msg.ballinfo[world_model_info_.AgentID_-1];
     }
@@ -212,18 +216,18 @@ public:
         ball_holding_.BallIsHolding=ball_holding.BallIsHolding;
     }
 
-    /** 球的三维信息,用于守门员角色*/
+    /** 球的三维信息,用于守门员角色 Three-dimensional information of the ball for the goalkeeper role*/
     void
     ballInfo3dCallback(const nubot_common::BallInfo3d  &_BallInfo_3d){
 
         //m_strategy_->goalie_strategy_.setBallInfo3dRel( _BallInfo_3d );
     }
-    /** 主要的控制框架位于这里*/
+    /** 主要的控制框架位于这里 The main control framework is located here*/
     void
     loopControl(const ros::TimerEvent& event)
     {
-        match_mode_ = world_model_info_.CoachInfo_.MatchMode;               //! 当前比赛模式
-        pre_match_mode_ = world_model_info_.CoachInfo_.MatchType;           //! 上一个比赛模式
+        match_mode_ = world_model_info_.CoachInfo_.MatchMode;               //! 当前比赛模式 Current game mode
+        pre_match_mode_ = world_model_info_.CoachInfo_.MatchType;           //! 上一个比赛模式 Previous game mode
         robot_pos_  = world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getLocation();
         robot_ori_  = world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getHead();
         ball_pos_   = world_model_info_.BallInfo_[world_model_info_.AgentID_-1].getGlobalLocation();
@@ -231,27 +235,30 @@ public:
 
         if(match_mode_ == STOPROBOT )
         {
-            /// 运动参数
+            /// 运动参数 Motion parameters
             action_cmd_.move_action =No_Action;
             action_cmd_.rotate_acton=No_Action;
         }
-        /** 机器人在开始之前的跑位. 开始静态传接球的目标点计算*/
+        /** 机器人在开始之前的跑位. 开始静态传接球的目标点计算
+            The robot's running position before the start. Start calculation of the goal point for static passing and receiving*/
         else if(match_mode_ > STOPROBOT && match_mode_ <= DROPBALL)
             positioning();
         else if(match_mode_==PARKINGROBOT)
             parking();
-        else// 机器人正式比赛了，进入start之后的机器人状态
+        else// 机器人正式比赛了，进入start之后的机器人状态 The robot officially competes, enter the robot state after start
         {
             normalGame();
-        } // start部分结束
+        } // start部分结束 end of start part
         handleball();
         setEthercatCommand();
         pubStrategyInfo();  // 发送策略消息让其他机器人看到，这一部分一般用于多机器人之间的协同
+                            //Send strategy messages for other robots to see. This part is generally used for collaboration between multiple robots
     }
 
 
     void positioning()
-    { 
+    // Do this shit
+    {
         switch (match_mode_)
         {
         case OUR_KICKOFF:
@@ -314,6 +321,8 @@ public:
         DPoint br = ball_pos_ - robot_pos_;
         switch(world_model_info_.AgentID_)  // 十分简单的实现，固定的站位，建议动态调整站位，写入staticpass.cpp中
         {                                   // 站位还需要考虑是否犯规，但是现在这个程序没有考虑。
+                                            //Very simple implementation, fixed station position, it is recommended to dynamically adjust the station position and write it in staticpass.cpp
+                                            // The position still needs to consider whether it is foul, but this procedure does not consider it now.
         case 1:
             target = DPoint(-1050.0,0.0);
             break;
@@ -343,7 +352,9 @@ public:
         DPoint br = ball_pos_ - robot_pos_;
         DPoint target;
         switch(world_model_info_.AgentID_)  // 十分简单的实现，固定的站位，建议动态调整站位，写入staticpass.cpp中
+                                            // Very simple implementation, fixed station position, it is recommended to dynamically adjust the station position and write it in staticpass.cpp
         {                                   // 站位还需要考虑是否犯规，但是现在这个程序没有考虑。
+                                            // The position still needs to consider whether it is foul, but this procedure does not consider it now.
         case 1:
             target = DPoint(-1050.0,0.0);
             break;
@@ -375,10 +386,10 @@ public:
         float tar_ori = SINGLEPI_CONSTANT/2.0;
         parking_target.x_= FIELD_XLINE7 + 150.0 * world_model_info_.AgentID_;
 //        if(world_model_info_.AgentID_ == 1)
-//            parking_target.x_ = -900;//守门员站在离球门最近的地方
+//            parking_target.x_ = -900;//守门员站在离球门最近的地方 The goalkeeper stands closest to the goal
         parking_target.y_ = parking_y;
 
-        if(move2target(parking_target, robot_pos_))    //停到目标点10cm附近就不用动了，只需调整朝向
+        if(move2target(parking_target, robot_pos_))    //停到目标点10cm附近就不用动了，只需调整朝向 You don’t need to move when you stop 10cm near the target point, just adjust the direction
             move2ori(tar_ori, robot_ori_.radian_);
         action_cmd_.move_action = Positioned_Static;
         action_cmd_.rotate_acton= Positioned_Static;
