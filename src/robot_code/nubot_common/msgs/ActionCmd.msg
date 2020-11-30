@@ -9,7 +9,7 @@ Point2d robot_vel
 float32 robot_ori
 float32 robot_w
 char    move_action
-char    rotate_acton
+char    rotate_action
 int32   rotate_mode
 int64   handle_enable
 float32 strength
