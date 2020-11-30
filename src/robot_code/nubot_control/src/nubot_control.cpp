@@ -498,7 +498,7 @@ public:
             return false;
     }
 
-    bool move2target(DPoint target, DPoint pos, double distance_thres=20.0)     // 一个十分简单的实现，可以用PID
+    bool move2target(DPoint target, DPoint pos, double distance_thres=20.0)     // A very simple implementation, you can use PID
     {
         action_cmd_.target.x = target.x_;
         action_cmd_.target.y = target.y_;
@@ -509,11 +509,11 @@ public:
             return true;
     }
 
-    bool move2ori(double target, double angle, double angle_thres = 8.0*DEG2RAD)  // 一个十分简单的实现，可以用PID
+    bool move2ori(double target, double angle, double angle_thres = 8.0*DEG2RAD)  // 一个十分简单的实现，可以用PID A very simple implementation, you can use PID
     {
         action_cmd_.target_ori =target;
         action_cmd_.maxw = fabs(target-angle)*2;
-        if(fabs(target-angle) > angle_thres)        // 容许误差为5度
+        if(fabs(target-angle) > angle_thres)        // 容许误差为5度 Allowable error is 5 degrees
             return false;
         else
             return true;
@@ -529,14 +529,14 @@ public:
         command.maxvel = 0;
         command.maxw   = 0;
         command.target_w   =0;
-        /// 机器人人位置信息 robot states
+        /// 机器人人位置信息 robot states: Robot location information robot states
         command.robot_pos.x=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getLocation().x_;
         command.robot_pos.y=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getLocation().y_;
         command.robot_vel.x=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getVelocity().x_;
         command.robot_vel.y=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getVelocity().y_;
         command.robot_ori=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getHead().radian_;
         command.robot_w=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getW();
-        /// 运动参数
+        /// 运动参数 Motion parameters
         command.move_action =action_cmd_.move_action;
         command.rotate_acton=action_cmd_.rotate_acton;
         command.rotate_mode =action_cmd_.rotate_mode;
@@ -552,19 +552,19 @@ public:
             command.maxw=MAXW;
         if(fabs(command.target_ori)>10000.0)
             command.target_ori = 0;
-        /// 带球及射门选择
+        /// 带球及射门选择 Dribbling and shooting options
         command.handle_enable=action_cmd_.handle_enable;
         command.strength=action_cmd_.strength;
         if(command.strength!= 0)
             std::cout<<"passed out"<<command.strength<<std::endl;
         command.shootPos = action_cmd_.shootPos;
-        /// 传一次后，力量清0,防止多次射门
+        /// 传一次后，力量清0,防止多次射门 After one pass, the power is cleared to prevent multiple shots
         action_cmd_.strength=0;
         action_cmd_pub_.publish(command);
     }
     void pubStrategyInfo()
     {
-        nubot_common::StrategyInfo strategy_info;       // 这个消息的定义可以根据个人需要进行修改
+        nubot_common::StrategyInfo strategy_info;       // 这个消息的定义可以根据个人需要进行修改 The definition of this message can be modified according to personal needs
         strategy_info.header.stamp = ros::Time::now();
         strategy_info.AgentID     = world_model_info_.AgentID_;
         strategy_info.is_dribble = ball_holding_.BallIsHolding;
@@ -577,6 +577,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc,argv,"nubot_control_node");
     // 完成一系列的初始化工作？ 以及相应的报错机制。  只有当所有的传感器信息都已经准备就绪的时候才可以运行
+    // Complete a series of initialization work? And the corresponding error reporting mechanism. It can only run when all the sensor information is ready
     ros::Time::init();
     ROS_INFO("start control process");
     nubot::NuBotControl nubotcontrol(argc,argv);
