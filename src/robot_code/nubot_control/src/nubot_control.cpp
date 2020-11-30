@@ -257,7 +257,7 @@ public:
 
 
     void positioning()
-    // Do this shit
+    // Do this stuff
     {
         switch (match_mode_)
         {
