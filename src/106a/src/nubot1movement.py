@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 import rospy
 from nubot_common.msg import VelCmd
 
