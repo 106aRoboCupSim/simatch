@@ -47,12 +47,15 @@ public:
     ros::Timer       control_timer_;
 
     boost::shared_ptr<ros::NodeHandle> nh_;
+
 public:
-    World_Model_Info world_model_info_;  /** 世界模型中的信息赋值，来源于world_model节点的topic The information assignment in the world model comes from the topic of the world_model node*/
+
+    World_Model_Info world_model_info_;  /** 世界模型中的信息赋值，来源于world_model节点的topic
+                                            The information assignment in the world model
+                                            comes from the topic of the world_model node*/
     Strategy  * m_strategy_;
     Plan   m_plan_;
     StaticPass m_staticpass_;
-
     double kp_;
     double kalpha_;
     double kbeta_;
@@ -476,13 +479,13 @@ public:
         }
     }
 
-    bool isNearestRobot()         //找到距离足球最近的机器人
+    bool isNearestRobot()         //找到距离足球最近的机器人 Find the robot closest to the football
     {
         float distance_min = 2000.0;
         float distance = distance_min;
         int robot_id = -1;
 
-        for(int i=1;i<OUR_TEAM;i++)     // 排除守门员
+        for(int i=1;i<OUR_TEAM;i++)     // 排除守门员 Exclude goalkeeper
             if(world_model_info_.RobotInfo_[i].isValid())
             {
                 distance = ball_pos_.distance(world_model_info_.RobotInfo_[i].getLocation());
@@ -499,6 +502,7 @@ public:
     }
 
     bool move2target(DPoint target, DPoint pos, double distance_thres=20.0)     // A very simple implementation, you can use PID
+    // NEED TO IMPLEMENT
     {
         action_cmd_.target.x = target.x_;
         action_cmd_.target.y = target.y_;
@@ -510,6 +514,7 @@ public:
     }
 
     bool move2ori(double target, double angle, double angle_thres = 8.0*DEG2RAD)  // 一个十分简单的实现，可以用PID A very simple implementation, you can use PID
+    // NEED TO IMPLEMENT
     {
         action_cmd_.target_ori =target;
         action_cmd_.maxw = fabs(target-angle)*2;
