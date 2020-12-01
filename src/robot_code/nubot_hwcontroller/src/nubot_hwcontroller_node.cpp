@@ -131,7 +131,7 @@ void Nubot_HWController::SetAction(const nubot_common::ActionCmd::ConstPtr& cmd)
     std::string num = robot_name.substr(robot_name.size()-1);
     /// 动作，当前线速度，角速度，目标位置，目标速度，目标角度，最大线速度，最大角速度
     move_action_=cmd->move_action;
-    rotate_action_=cmd->rotate_acton;
+    rotate_action_=cmd->rotate_action;
     rotate_mode_=cmd->rotate_mode;
     target_=nubot::DPoint2s(cmd->target.x,cmd->target.y);
     target_vel_=nubot::DPoint2s(cmd->target_vel.x,cmd->target_vel.y);
