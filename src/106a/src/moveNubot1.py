@@ -110,7 +110,7 @@ class RRT:
         n_expand = math.floor(extend_length / self.path_resolution)
 
         """ Interpolate line onto discrete space """
-        for _ in range(n_expand):
+        for _ in range(int(n_expand)):
             new_node.x += self.path_resolution * math.cos(theta)
             new_node.y += self.path_resolution * math.sin(theta)
             new_node.path_x.append(new_node.x)
@@ -290,7 +290,7 @@ class RRT_closest(RRT):
                                         self.expand_dis)
                 if self.check_collision(final_node, self.obstacle_list):
                     self.obj_reached = True
-                    return self.generate_final_course(len(self.node_list) - 1)
+                    return self.generate_course(len(self.node_list) - 1)
 
             """ update best_node """
             if new_dist <= self.calc_dist_to_goal(best_node.x, best_node.y):
@@ -311,7 +311,7 @@ class RRT_closest(RRT):
             node = node.parent
         path.append([node.x, node.y])
 
-        return path
+        return np.array(path)
 
     def get_path_length(path):
         le = 0
@@ -415,8 +415,19 @@ def callback(data):
     rrt = RRT_closest(start=start, goal=goal, rand_area=[22, 14], obstacle_list=[], max_iter=5)
     path = rrt.planning(animation=False)
 
+    x0 = start[0]
+    y0 = start[1]
+    tht0 = 0
 
-    t = np.linspace(0, 10, 1000)
+    print(np.shape(path))
+    xdes = path[:,0]
+    ydes = path[:,1]
+
+    t = np.linspace(0, 10, 6)
+    thtdes = np.zeros(len(t))
+    error_x0 = x0 - xdes[0]
+    error_y0 = y0 - ydes[0]
+    error_tht0 = tht0 - thtdes[0]
 
     error_x = np.exp(-t / timeConst_x)*error_x0
     error_y = np.exp(-t / timeConst_y)*error_y0
@@ -430,9 +441,10 @@ def callback(data):
     w = np.diff(tht)
     
     for i in range(len(vx)):
-        v.Vx = c[0]
-        v.Vy = c[1]
-        v.w = c[2]
+        v = VelCmd()
+        v.Vx = vx
+        v.Vy = vy
+        v.w = w
         pub.publish(v)
         rate.sleep()
     
@@ -445,6 +457,6 @@ if __name__ == '__main__':
         rospy.init_node('nubot1controller', anonymous=True)
         rate = rospy.Rate(100)
         rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback)
-        move()
+        #move()
     except rospy.ROSInterruptException:
         pass
