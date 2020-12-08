@@ -407,48 +407,62 @@ timeConst_x = 0.1
 timeConst_y = 1
 timeConst_tht = 1
 
+def P_controller(error_x, error_y, error_tht, d_xdes, d_ydes, d_thtdes):
+    control = VelCmd()
+
+    control.Vx =  -(1/timeConst_x)*error_x + d_xdes
+    control.Vy =  -(1/timeConst_y)*error_y + d_ydes
+    control.w  =  -(1/timeConst_tht)*error_tht + d_thtdes
+
+    return control
+
+
 def callback(data):
-    goal = data.ballinfo.pos
-    start = data.robotinfo[0].pos
-    goal = np.array([goal.x, goal.y])
-    start = np.array([start.x, start.y])
-    rrt = RRT_closest(start=start, goal=goal, rand_area=[22, 14], obstacle_list=[], max_iter=5)
-    path = rrt.planning(animation=False)
+    # goal = data.ballinfo.pos
+    # start = data.robotinfo[0].pos
+    # goal = np.array([goal.x, goal.y])
+    # start = np.array([start.x, start.y])
+    # rrt = RRT_closest(start=start, goal=goal, rand_area=[22, 14], obstacle_list=[], max_iter=5)
+    # path = rrt.planning(animation=False)
 
-    x0 = start[0]
-    y0 = start[1]
-    tht0 = 0
+    # # x0 = start[0]
+    # # y0 = start[1]
+    # # tht0 = 0
 
-    print(np.shape(path))
-    xdes = path[:,0]
-    ydes = path[:,1]
+    # print(np.shape(path))
+    # xdes = path[:,0]
+    # ydes = path[:,1]
 
-    t = np.linspace(0, 10, 6)
-    thtdes = np.zeros(len(t))
-    error_x0 = x0 - xdes[0]
-    error_y0 = y0 - ydes[0]
-    error_tht0 = tht0 - thtdes[0]
+    # t = np.linspace(0, 10, 6)
+    # thtdes = np.zeros(len(t))
+    # error_x0 = x0 - xdes[0]
+    # error_y0 = y0 - ydes[0]
+    # error_tht0 = tht0 - thtdes[0]
 
-    error_x = np.exp(-t / timeConst_x)*error_x0
-    error_y = np.exp(-t / timeConst_y)*error_y0
-    error_tht = np.exp(-t / timeConst_tht)*error_tht0
-    x = error_x + xdes
-    y = error_y + ydes
-    tht = error_tht + thtdes
+    # error_x = np.exp(-t / timeConst_x)*error_x0
+    # error_y = np.exp(-t / timeConst_y)*error_y0
+    # error_tht = np.exp(-t / timeConst_tht)*error_tht0
+    # x = error_x + xdes
+    # y = error_y + ydes
+    # tht = error_tht + thtdes
 
-    vx = np.diff(x)
-    vy = np.diff(y)
-    w = np.diff(tht)
+    # vx = np.diff(x)
+    # vy = np.diff(y)
+    # w = np.diff(tht)
     
-    for i in range(len(vx)):
+    for i in range(6):
         v = VelCmd()
-        v.Vx = vx
-        v.Vy = vy
-        v.w = w
+        v.Vx = 10
+        v.Vy = 10
+        v.w = 0
         pub.publish(v)
         rate.sleep()
     
         
+def init_pubsub():
+    rospy.init_node('nubot1_106acontroller', anonymous=True)
+    rospy.
+
 
 if __name__ == '__main__':
     
