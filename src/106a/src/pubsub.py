@@ -23,6 +23,14 @@ def P_controller(error_x, error_y, error_tht, d_xdes, d_ydes, d_thtdes):
 
     return control
 
+def target_global_to_robot_coords(t_global_x, t_global_y, r_global_x, r_global_y, theta):
+    t_robot_x = (t_global_x - r_global_x)*np.cos(theta) - (t_global_y - r_global_y)*np.sin(theta)
+    t_robot_y = (t_global_x - r_global_x)*np.sin(theta) + (t_global_y - r_global_y)*np.cos(theta)
+    
+    return [t_robot_x, t_robot_y]
+
+
+
 def callback(data):
     b = data.ballinfo
     ball_x = b.pos.x
@@ -31,7 +39,7 @@ def callback(data):
     r = data.robotinfo[0]
     robot_x = r.pos.x
     robot_y = r.pos.y
-
+    theta = r.heading.theta
     rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[2200, 1400], obstacle_list=[(-1000, -90, 10)], max_iter=3)
     path = rrt.planning(animation=False)
 
@@ -45,13 +53,19 @@ def callback(data):
     # print(path)
     current_pos = [robot_x, robot_y]
     target=path[0]
-    print(target)
+    #print(target)
+    target = target_global_to_robot_coords(target[0], target[1], robot_x, robot_y, theta)
     action = ActionCmd()
+    print(target)
+    action.target.x = target[0]
+    action.target.y = target[1]
+    action.maxvel = 300
+
     # action.target.x = -target[0]
     # action.target.y = -target[1]
     # action.maxvel = 100
-    action.target_vel.x = (target[0] - current_pos[0]) * hertz
-    action.target_vel.y = (target[1] - current_pos[1]) * hertz
+    # action.target_vel.x = (target[0] - current_pos[0]) * hertz
+    # action.target_vel.y = (target[1] - current_pos[1]) * hertz
     # vel = VelCmd()
     # vel.Vx = (target[0] - current_pos[0]) * hertz
     # vel.Vy = (target[1] - current_pos[1]) * hertz
