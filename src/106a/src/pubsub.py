@@ -5,7 +5,8 @@ from nubot_common.msg import VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, R
 from RRT import RRT_closest
 pub = rospy.Publisher('/NuBot1/nubotcontrol/velcmd', VelCmd, queue_size=1)
 rospy.init_node('pubsub', anonymous=True)
-rate = rospy.Rate(2) # 10hz
+hertz = 100
+rate = rospy.Rate(hertz) # 10hz
 
 
 
@@ -31,7 +32,7 @@ def callback(data):
     robot_x = r.pos.x
     robot_y = r.pos.y
 
-    rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[2200, 1400], obstacle_list=[], max_iter=5)
+    rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[2200, 1400], obstacle_list=[(-1000, -90, 10)], max_iter=3)
     path = rrt.planning(animation=False)
 
     print('robot pos:')
@@ -43,15 +44,23 @@ def callback(data):
     print('path:')
     print(path)
 
-    prev_target = [robot_x, robot_y]
+    current_pos = [robot_x, robot_y]
     #target = [ball_x, ball_y]
     #target = [10, 10]
     target=path[0]
+    vel = VelCmd()
+    vel.Vx = (target[0] - current_pos[0]) * hertz
+    vel.Vy = (target[1] - current_pos[1]) * hertz
+    vel.w = 0
+
+    pub.publish(vel)
+    rate.sleep()
+    
     #c = P_controller(target[0] - prev_target[0], target[1] - prev_target[1], 0, target[0], target[1], 0)
     #c = P_controller(prev_target[0] - target[0], prev_target[1] - target[1], 0, target[0], target[1], 0)
-    c = P_controller(prev_target[0] - target[0], prev_target[1] - target[1], 0, 0, 0, 0)
-    pub.publish(c)
-    rate.sleep()
+    #c = P_controller(prev_target[0] - target[0], prev_target[1] - target[1], 0, 0, 0, 0)
+    #pub.publish(c)
+    #rate.sleep()
     # print('robot pos:')
     # print(robot_x)
     # print(robot_y)
