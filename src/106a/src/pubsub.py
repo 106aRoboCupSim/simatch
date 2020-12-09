@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
-from RRT import RRT_closest
+from RRT import RRT_closest, RRT
 pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
 rospy.init_node('pubsub', anonymous=True)
 hertz = 100
@@ -24,8 +24,10 @@ def P_controller(error_x, error_y, error_tht, d_xdes, d_ydes, d_thtdes):
     return control
 
 def target_global_to_robot_coords(t_global_x, t_global_y, r_global_x, r_global_y, theta):
-    t_robot_x = (t_global_x - r_global_x)*np.cos(theta) - (t_global_y - r_global_y)*np.sin(theta)
-    t_robot_y = (t_global_x - r_global_x)*np.sin(theta) + (t_global_y - r_global_y)*np.cos(theta)
+    c = np.cos(-theta)
+    s = np.sin(-theta)
+    t_robot_x = -(c * t_global_x) + (s * t_global_y) + (t_global_x - r_global_x)
+    t_robot_y =  (s * t_global_x) + (s * t_global_y) + (t_global_y - r_global_y)
     
     return [t_robot_x, t_robot_y]
 
@@ -40,7 +42,9 @@ def callback(data):
     robot_x = r.pos.x
     robot_y = r.pos.y
     theta = r.heading.theta
-    rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[2200, 1400], obstacle_list=[(-1000, -90, 10)], max_iter=3)
+    rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[-1100, 1100], obstacle_list=[(-500, 0, 100)], max_iter=1)
+    #rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[-1100, 1100], obstacle_list=[], max_iter=10)
+
     path = rrt.planning(animation=False)
 
     # print('robot pos:')
@@ -53,14 +57,24 @@ def callback(data):
     # print(path)
     current_pos = [robot_x, robot_y]
     target=path[0]
+    #target = [ball_x, ball_y]
+    print(path)
+    # print(robot_x)
+    # print(robot_y)
+    # print(ball_x)
+    # print(ball_y)
+    # print(path)
+    #target = [ball_x, ball_y]
     #print(target)
     target = target_global_to_robot_coords(target[0], target[1], robot_x, robot_y, theta)
-    action = ActionCmd()
     print(target)
+    action = ActionCmd()
     action.target.x = target[0]
     action.target.y = target[1]
     action.maxvel = 300
+    action.handle_enable = 1
 
+    action.target_ori = 0
     # action.target.x = -target[0]
     # action.target.y = -target[1]
     # action.maxvel = 100
