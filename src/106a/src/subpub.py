@@ -116,7 +116,7 @@ def callback(data):
     obstacle_list = np.empty((0,3), float)
     #print(obstacles.pos)
     for p in obstacles.pos:
-        obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 70]])))
+        obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
         #np.append(obstacle_list, [[p.x, p.y, 100]])
 
     target = rrt_simplified(ball_pos, robot_pos, obstacle_list, 100, 400)
