@@ -97,7 +97,7 @@ class Config:
 
 
 
-def motion(x, u, dt): 
+def motion(x, u, dt):
     """
     motion model
     """
@@ -241,6 +241,7 @@ def get_dyn_window_path(start, goal, obstacle_list=[], robot_type=RobotType.circ
     #x = np.array([0.0, 0.0, math.pi / 8.0, 0.0, 0.0])
     x = np.array(start)
     # goal position [x(m), y(m)]
+    goal = [100,100]
     goal = np.array(goal)
 
     # input [forward speed, yaw_rate]
@@ -260,4 +261,3 @@ def get_dyn_window_path(start, goal, obstacle_list=[], robot_type=RobotType.circ
 
     print("Done")
     return np.array(tuple((trajectory[:, 0], trajectory[:, 1])))
-

@@ -28,18 +28,19 @@ def target_global_to_robot_coords(t_global_x, t_global_y, r_global_x, r_global_y
     s = np.sin(theta)
     t_robot_x = -(c * t_global_x) + (s * t_global_y) + (t_global_x - r_global_x)
     t_robot_y =  (s * t_global_x) + (c * t_global_y) + (t_global_y - r_global_y)
-    
+
     return [t_robot_x, t_robot_y]
 
 
 
 def callback(data):
     b = data.ballinfo
-    ball_x = b.pos.x
-    ball_y = b.pos.y
+    # print(b)
+    # ball_x = b.pos.x
+    # ball_y = b.pos.y
 
-    ball_x = -1150
-    ball_y = 0
+    ball_x = 100
+    ball_y = 100
 
     r = data.robotinfo[0]
     robot_x = r.pos.x
@@ -47,9 +48,9 @@ def callback(data):
     robot_vel = np.sqrt(r.vtrans.x**2 + r.vtrans.y**2)
     robot_omega = r.vrot
     theta = r.heading.theta
-    print(robot_vel, type(robot_vel))
-    print(robot_omega, type(robot_omega))
-    print("ball", ball_x, ball_y)
+    # print(robot_vel, type(robot_vel))
+    # print(robot_omega, type(robot_omega))
+    # print("ball", ball_x, ball_y)
     #rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[-1100, 1100], obstacle_list=[(-500, 0, 100)], max_iter=1)
     #rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[-1100, 1100], obstacle_list=[], max_iter=10)
 
@@ -58,15 +59,16 @@ def callback(data):
     path = get_dyn_window_path([robot_x, robot_y, theta, robot_vel, robot_omega], ball_x, ball_y)
 
     current_pos = [robot_x, robot_y]
-    for i in range(len(path))[:1]:
-        target = path[i]
-        print(path)
-        target = target_global_to_robot_coords(target[0], target[1], robot_x, robot_y, theta)
-        print(target)
-        action = ActionCmd()
-        action.target.x = target[0]
-        action.target.y = target[1]
-        print("action", action)
+    # for i in range(len(path))[:1]:
+    target = path[0]
+    print('path[0]' + str(path[0]))
+    target = target_global_to_robot_coords(target[0], target[1], robot_x, robot_y, theta)
+    # print(target)
+    action = ActionCmd()
+    action.target.x = target[0]
+    action.target.y = target[1]
+    print("actionx", action.target.x)
+    print("actiony", action.target.y)
 
     action.maxvel = 300
     action.handle_enable = 1
@@ -75,7 +77,7 @@ def callback(data):
 
     pub.publish(action)
     rate.sleep()
-    
+
     #c = P_controller(target[0] - prev_target[0], target[1] - prev_target[1], 0, target[0], target[1], 0)
     #c = P_controller(prev_target[0] - target[0], prev_target[1] - target[1], 0, target[0], target[1], 0)
     #c = P_controller(prev_target[0] - target[0], prev_target[1] - target[1], 0, 0, 0, 0)
@@ -96,7 +98,7 @@ def callback(data):
     #     pub.publish(c)
     #     prev_target = target
     #     rate.sleep()
-    
+
 
 
 def listener():

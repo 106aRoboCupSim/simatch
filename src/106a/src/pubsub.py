@@ -11,7 +11,7 @@ from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, Obsta
 
 # Initialize publisher and rate
 pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
-rospy.init_node('pubsub', anonymous=True)
+rospy.init_node('pubsub', anonymous=False)
 hertz = 10
 rate = rospy.Rate(hertz)
 
@@ -88,7 +88,6 @@ def callback(data):
 
 def listener():
     rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
-
     rospy.spin()
 
 if __name__ == '__main__':
