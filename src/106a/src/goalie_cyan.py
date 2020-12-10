@@ -118,6 +118,11 @@ def callback(data):
         pub.publish(action)
         rate.sleep()
     else:
+        action = ActionCmd()
+        action.target.x = 0
+        action.target.y = 0
+        pub.publish(action)
+        rate.sleep()
         pass
         
 
