@@ -12,8 +12,8 @@ def callback(data):
     b = data.ballinfo
     ball_x = b.pos.x
     ball_y = b.pos.y
-    print(ball_x)
-    print(ball_y)
+    #print(ball_x)
+    #print(ball_y)
     if ball_x/100 >= 11:
         resetBall = ModelState()
         resetBall.model_name = 'football'
@@ -53,8 +53,8 @@ def callback(data):
     if ball_y/100 <= -7:
         resetBall = ModelState()
         resetBall.model_name = 'football'
-        resetBall.pose.position.x = 0.0
-        resetBall.pose.position.y = -ball_y/100
+        resetBall.pose.position.x = ball_x/100
+        resetBall.pose.position.y = -6.5
         resetBall.pose.position.z = 0.0
         resetBall.pose.orientation.x = 0.0
         resetBall.pose.orientation.y = 0.0
