@@ -65,7 +65,7 @@ def callback(data):
         print("Here");
         t = np.array([-700, 0]) 
         target = plan(t, robot_pos, obstacle_list, 100, 400)
-        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
+        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     
         #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
         target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
@@ -83,10 +83,10 @@ def callback(data):
         action.shootPos = 1
         pub.publish(action)
 
-    if in_range(robot_pos, ball_pos, 450) and in_range(ball_pos, goalie_origin, 600):
+    if in_range(robot_pos, ball_pos, 500) and in_range(ball_pos, goalie_origin, 600):
         #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
         target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
-        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
+        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     
         #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
         target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
@@ -103,10 +103,10 @@ def callback(data):
     elif not in_range(robot_pos, goalie_origin, 100):
         #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
         target = plan(goalie_origin, robot_pos, obstacle_list, 100, 400)
-        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
+        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     
         #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
-        target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
+        target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta) 
         
         #Generate ActionCmd() and publish to hwcontroller
         action = ActionCmd()
