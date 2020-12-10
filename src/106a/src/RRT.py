@@ -217,7 +217,7 @@ class RRT_closest(RRT):
                  goal,
                  obstacle_list,
                  rand_area,
-                 expand_dis=5,
+                 expand_dis=1,
                  path_resolution=0.5,
                  goal_sample_rate=5,
                  max_iter=5,
