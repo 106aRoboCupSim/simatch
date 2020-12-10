@@ -1,19 +1,23 @@
 #!/usr/bin/env python
 import rospy
+import sys
 import numpy as np
 from realtimepseudoAstar import plan
 from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
+
+ROBOT_NAME = sys.argv[1]
 
 # For plotting
 # import math
 # import matplotlib.pyplot as plt
 
 # Initialize publisher and rate
-pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
-rospy.init_node('pubsub', anonymous=False)
+pub = rospy.Publisher('/' + str(ROBOT_NAME)+'/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
+rospy.init_node(str(ROBOT_NAME) + '_planner', anonymous=False)
 hertz = 10
 rate = rospy.Rate(hertz)
+
 
 # For plotting path and path plan
 # targets_generated_x = []
@@ -87,7 +91,7 @@ def callback(data):
 
 
 def listener():
-    rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+    rospy.Subscriber("/" + str(ROBOT_NAME) + "/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
     rospy.spin()
 
 if __name__ == '__main__':

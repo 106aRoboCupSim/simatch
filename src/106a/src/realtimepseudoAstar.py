@@ -4,6 +4,9 @@ import numpy as np
 
 def plan(goal_pos, current_pos, obstacles, target_distance, generate_num=6):
 
+    if np.linalg.norm(goal_pos - current_pos) < 5:
+        return current_pos
+
     #If no obstacles between current position and goal, return goal as target
     if exists_clear_path(goal_pos, current_pos, obstacles):
         return goal_pos
