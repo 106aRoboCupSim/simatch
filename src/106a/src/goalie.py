@@ -2,7 +2,7 @@
 import rospy
 import numpy as np
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
-from finite_dyn_window import *
+from finite_dyn_window_2 import *
 pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
 rospy.init_node('goalie', anonymous=True)
 hertz = 100
@@ -56,7 +56,7 @@ def callback(data):
 
     #path = rrt.planning(animation=False)
 
-    path = get_dyn_window_path(start=[robot_x, robot_y, theta, robot_vel, robot_omega], goal=[ball_x, ball_y], obstacle_list=[(0, 0, 1)])
+    path = get_dyn_window_path([robot_x, robot_y, theta, robot_vel, robot_omega], ball_x, ball_y)
 
     current_pos = [robot_x, robot_y]
     # for i in range(len(path))[:1]:
