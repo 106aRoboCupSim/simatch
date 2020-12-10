@@ -36,7 +36,7 @@ def kick():
     print('tried to kick')
 
 def callback(data):
-    
+
     #Get ball position in global frame
     b = data.ballinfo
     ball_pos = np.array([b.pos.x, b.pos.y])
@@ -51,7 +51,7 @@ def callback(data):
     obstacle_list = np.empty((0,3), float)
     for p in obstacles.pos:
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 75]])))
-
+    print(obstacle_list)
     #print(r.isdribble)
     target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
     thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
@@ -82,7 +82,7 @@ def callback(data):
     #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
 
     target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
-    
+
     #Generate ActionCmd() and publish to hwcontroller
     #action = ActionCmd()
     action.target.x = target[0]
