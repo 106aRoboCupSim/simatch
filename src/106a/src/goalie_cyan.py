@@ -4,6 +4,7 @@ import numpy as np
 from realtimepseudoAstar import plan
 from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
+from nubot_common.msg import BallIsHolding
 
 # For plotting
 # import math
@@ -36,6 +37,11 @@ def in_range(robot_pos, ball_pos, thresh=100):
     print(thresh, val)
     return val < thresh
 
+isholding = 0
+def holding_callback(data):
+    global isholding
+    isholding = int(data.BallIsHolding)
+
 def callback(data):
     
     #Get ball position in global frame
@@ -55,9 +61,9 @@ def callback(data):
     for p in obstacles.pos:
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
 
-    if data.robotinfo[0].isdribble:
+    if isholding:
         print("Here");
-        t = np.array([-800, 0]) 
+        t = np.array([-700, 0]) 
         target = plan(t, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
     
@@ -70,7 +76,7 @@ def callback(data):
         action.target.y = target[1]
         action.maxvel = 300
         action.handle_enable = 1
-        action.target_ori = thetaDes
+        action.target_ori = -theta
         pub.publish(action)
         rate.sleep()
         action.strength = 100
@@ -121,6 +127,7 @@ def callback(data):
 
 def listener():
     rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+    rospy.Subscriber("/NuBot1/ballisholding/BallIsHolding", BallIsHolding, holding_callback, queue_size=1)
 
     rospy.spin()
 
