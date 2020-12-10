@@ -51,7 +51,7 @@ def callback(data):
     obstacles = data.obstacleinfo
     obstacle_list = np.empty((0,3), float)
     for p in obstacles.pos:
-        obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
+        obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 75]])))
 
     #print(r.isdribble)
     target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
