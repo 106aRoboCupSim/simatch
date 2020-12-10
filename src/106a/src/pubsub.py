@@ -4,10 +4,11 @@ import sys
 import numpy as np
 from realtimepseudoAstar import plan
 from globaltorobotcoords import transform
-from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
+from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo, BallIsHolding
 
-ROBOT_NAME = sys.argv[1]
-
+ROBOT_NAME = 'NuBot' + str(sys.argv[1])
+opponent_goal = np.array([1100.0, 0.0])
+isdribble = 0
 # For plotting
 # import math
 # import matplotlib.pyplot as plt
@@ -32,6 +33,8 @@ rate = rospy.Rate(hertz)
 #         yl = [y + size * math.sin(np.deg2rad(d)) for d in deg]
 #         plt.plot(xl, yl, color)
 
+def kick():
+    print('tried to kick')
 
 def callback(data):
     
@@ -40,7 +43,7 @@ def callback(data):
     ball_pos = np.array([b.pos.x, b.pos.y])
 
     #Get robot position and heading in global frame
-    r = data.robotinfo[0]
+    r = data.robotinfo[int(sys.argv[1]) - 1]
     robot_pos = np.array([r.pos.x, r.pos.y])
     theta = r.heading.theta
 
@@ -50,9 +53,24 @@ def callback(data):
     for p in obstacles.pos:
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
 
-    #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
+    #print(r.isdribble)
     target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
-    thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
+    thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
+    #print(isdribble)
+    action = ActionCmd()
+    if isdribble and np.linalg.norm(opponent_goal - robot_pos) > 300:
+        target = plan(opponent_goal, robot_pos, obstacle_list, 100, 400)
+        thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
+        #print('dribble')
+    elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < 300:
+        thetaDes = thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
+        target = robot_pos
+        action.shootPos = 1
+        action.strength = 100
+
+    #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
+    # target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
+    # thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
 
     # For plotting
     # robot_position_x.append(robot_pos[0])
@@ -61,10 +79,11 @@ def callback(data):
     # targets_generated_y.append(target[1])
 
     #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
+
     target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
     
     #Generate ActionCmd() and publish to hwcontroller
-    action = ActionCmd()
+    #action = ActionCmd()
     action.target.x = target[0]
     action.target.y = target[1]
     action.maxvel = 300
@@ -87,11 +106,15 @@ def callback(data):
     #     #print(targets_generated)
     #     plt.show()
     #     time.sleep(100)
-    
+
+def holdingballcallback(data):
+    global isdribble
+    isdribble = data.BallIsHolding
 
 
 def listener():
     rospy.Subscriber("/" + str(ROBOT_NAME) + "/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+    rospy.Subscriber("/" + str(ROBOT_NAME) + "/ballisholding/BallIsHolding", BallIsHolding, holdingballcallback, queue_size=1)
     rospy.spin()
 
 if __name__ == '__main__':
