@@ -12,12 +12,13 @@ def callback(data):
     b = data.ballinfo
     ball_x = b.pos.x
     ball_y = b.pos.y
-
-    if ball_x >= 1100:
+    print(ball_x)
+    print(ball_y)
+    if ball_x/100 >= 11:
         resetBall = ModelState()
         resetBall.model_name = 'football'
-        resetBall.pose.position.x = 1050
-        resetBall.pose.position.y = ball_y
+        resetBall.pose.position.x = 10.500
+        resetBall.pose.position.y = ball_y/100
         resetBall.pose.position.z = 0.0
         resetBall.pose.orientation.x = 0.0
         resetBall.pose.orientation.y = 0.0
@@ -25,11 +26,11 @@ def callback(data):
         resetBall.pose.orientation.w = 0.0
         pub.publish()
 
-    if ball_y >= 700:
+    if ball_y/100 >= 7:
         resetBall = ModelState()
         resetBall.model_name = 'football'
-        resetBall.pose.position.x = ball_x
-        resetBall.pose.position.y = -650
+        resetBall.pose.position.x = ball_x/100
+        resetBall.pose.position.y = 6.500
         resetBall.pose.position.z = 0.0
         resetBall.pose.orientation.x = 0.0
         resetBall.pose.orientation.y = 0.0
@@ -37,11 +38,11 @@ def callback(data):
         resetBall.pose.orientation.w = 0.0
         pub.publish(resetBall)
 
-    if ball_x <= -1100:
+    if ball_x/100 <= -11:
         resetBall = ModelState()
         resetBall.model_name = 'football'
-        resetBall.pose.position.x = -1050
-        resetBall.pose.position.y = ball_y
+        resetBall.pose.position.x = -10.500
+        resetBall.pose.position.y = ball_y/100
         resetBall.pose.position.z = 0.0
         resetBall.pose.orientation.x = 0.0
         resetBall.pose.orientation.y = 0.0
@@ -49,11 +50,11 @@ def callback(data):
         resetBall.pose.orientation.w = 0.0
         pub.publish(resetBall)
 
-    if ball_y <= -700:
+    if ball_y/100 <= -7:
         resetBall = ModelState()
         resetBall.model_name = 'football'
-        resetBall.pose.position.x = ball_x
-        resetBall.pose.position.y = -650
+        resetBall.pose.position.x = 0.0
+        resetBall.pose.position.y = -ball_y/100
         resetBall.pose.position.z = 0.0
         resetBall.pose.orientation.x = 0.0
         resetBall.pose.orientation.y = 0.0
