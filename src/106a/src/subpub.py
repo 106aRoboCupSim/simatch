@@ -6,7 +6,7 @@ import math
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
 from RRT import RRT_closest, RRT
 import matplotlib.pyplot as plt
-pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
+pub = rospy.Publisher('/rival1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
 rospy.init_node('pubsub', anonymous=True)
 # hertz = 2
 # rate = rospy.Rate(hertz) # 10hz
@@ -34,10 +34,9 @@ def rrt_simplified(target_pos, current_pos, obstacles, target_distance, generate
     if clear_path(target_pos, current_pos, obstacles):
         print('path clear between robot and ball')
         return target_pos
+    best_target = current_pos
     #heading_options = np.random.random((generate_num,)) * np.pi * 2
     heading_options = np.linspace(0.0, 2*np.pi, num=generate_num)
-    random_heading = np.random.random() * np.pi * 2
-    best_target = current_pos + np.array([target_distance*np.cos(random_heading), target_distance*np.sin(random_heading)])
     for i in heading_options:
         #generate target_point at desired angle, distance
         potential_target = current_pos + np.array([target_distance*np.cos(i), target_distance*np.sin(i)])
@@ -75,8 +74,11 @@ def target_global_to_robot_coords(t_global_x, t_global_y, r_global_x, r_global_y
     y = t_global_y - r_global_y
     t_robot_x = c*x + s*y
     t_robot_y = -s*x + c*y
-    #t_robot_x =  (c * t_global_x) - (s * t_global_y) + (t_global_x - r_global_x)
-    #t_robot_y =  (s * t_global_x) + (c * t_global_y) + (t_global_y - r_global_y)
+    # #t_robot_x =  (c * t_glo
+    # c = np.cos(theta)
+    # s = np.sin(theta)
+    # t_robot_x =  (c * t_global_x) - (s * t_global_y) + (t_global_x - r_global_x)
+    # t_robot_y =  (s * t_global_x) + (c * t_global_y) + (t_global_y - r_global_y)
     
     return [t_robot_x, t_robot_y]
 
@@ -136,6 +138,7 @@ def callback(data):
     #target = [ball_x, ball_y]
     #print(target)
     target = target_global_to_robot_coords(target[0], target[1], robot_pos[0], robot_pos[1], theta)
+    print(target)
     
     #print(target)
     action = ActionCmd()
@@ -144,7 +147,7 @@ def callback(data):
     action.maxvel = 300
     action.handle_enable = 1
 
-    action.target_ori = 0
+    #action.target_ori = 0
     # action.target.x = -target[0]
     # action.target.y = -target[1]
     # action.maxvel = 100
@@ -202,7 +205,7 @@ def callback(data):
 
 
 def listener():
-    rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+    rospy.Subscriber("/rival1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
 
     rospy.spin()
 
