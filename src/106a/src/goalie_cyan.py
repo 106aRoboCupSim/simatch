@@ -34,7 +34,7 @@ def exists_clear_path(goal_pos, current_pos, obstacles):
 
 def in_range(robot_pos, ball_pos, thresh=100):
     val = np.linalg.norm(robot_pos - ball_pos)
-    print(thresh, val)
+    #print(thresh, val)
     return val < thresh
 
 isholding = 0
@@ -62,7 +62,7 @@ def callback(data):
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
 
     if isholding:
-        print("Here");
+        #print("Here");
         t = np.array([-700, 0]) 
         target = plan(t, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta

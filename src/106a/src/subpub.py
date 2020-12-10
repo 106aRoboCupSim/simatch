@@ -58,15 +58,15 @@ def callback(data):
     thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     #print(isdribble)
     action = ActionCmd()
-    if isdribble and np.linalg.norm(opponent_goal - robot_pos) > 300:
+    if isdribble and np.linalg.norm(opponent_goal - robot_pos) > 400:
         target = plan(opponent_goal, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
         #print('dribble')
-    elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < 300:
+    elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < 400:
         thetaDes = thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
         target = robot_pos
         action.shootPos = 1
-        action.strength = 100
+        action.strength = 200
 
     #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
     # target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
