@@ -55,6 +55,7 @@ def holding_callback(data):
     isholding = int(data.BallIsHolding)
 
 def callback(data):
+    print(data.robotinfo[1].isdribble)
     
     #Get ball position in global frame
     b = data.ballinfo
