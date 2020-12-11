@@ -39,6 +39,7 @@ rate = rospy.Rate(hertz)
 def callback(data):
 
     #Get ball position in global frame
+    # Reset on scoring a goal
     b = data.ballinfo
     ball_pos = np.array([b.pos.x, b.pos.y])
     if np.abs(ball_pos[0]) > 1100 and np.abs(ball_pos[1]) < 125:
