@@ -167,11 +167,11 @@ def callback(data):
                 pub.publish(reset_nubot)
                 pub.publish(reset_rival)
 
-    if ball_y/100 <= -7:
+    if ball_y <= -7:
         time.sleep(sleeptime)
         resetBall = ModelState()
         resetBall.model_name = 'football'
-        resetBall.pose.position.x = ball_x/100
+        resetBall.pose.position.x = ball_x
         resetBall.pose.position.y = -6
         resetBall.pose.position.z = 0.0
         resetBall.pose.orientation.x = 0.0
