@@ -17,7 +17,7 @@ def callback(data):
     ball_y = b.pos.y/100
     # print('ball_x: ' +str(ball_x))
     # print('ball_y: ' +str(ball_y))
-    sleeptime = .25
+    sleeptime = 0
     if ball_x >= 11 and abs(ball_y) >= 1.25:
         time.sleep(sleeptime)
         resetBall = ModelState()
@@ -45,7 +45,7 @@ def callback(data):
         pub.publish(black_goal)
         for i in [1,2]:
             reset_nubot = ModelState()
-            reset_nubot.model_name = 'Nubot'+str(i)
+            reset_nubot.model_name = 'NuBot'+str(i)
             reset_rival = ModelState()
             reset_rival.model_name = 'rival'+str(i)
             if i == 1:
@@ -167,11 +167,11 @@ def callback(data):
                 pub.publish(reset_nubot)
                 pub.publish(reset_rival)
 
-    if ball_y/100 <= -7:
+    if ball_y <= -7:
         time.sleep(sleeptime)
         resetBall = ModelState()
         resetBall.model_name = 'football'
-        resetBall.pose.position.x = ball_x/100
+        resetBall.pose.position.x = ball_x
         resetBall.pose.position.y = -6
         resetBall.pose.position.z = 0.0
         resetBall.pose.orientation.x = 0.0
