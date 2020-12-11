@@ -18,7 +18,7 @@ isdribble = 0
 
 # Initialize publisher and rate
 pub = rospy.Publisher('/' + str(ROBOT_NAME)+'/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
-rospy.init_node(str(ROBOT_NAME) + '_planner', anonymous=False)
+rospy.init_node(str(ROBOT_NAME) + '_brain', anonymous=False)
 hertz = 10
 rate = rospy.Rate(hertz)
 #rate2 = rospy.Rate(1)
@@ -41,13 +41,13 @@ def callback(data):
     #Get ball position in global frame
     b = data.ballinfo
     ball_pos = np.array([b.pos.x, b.pos.y])
-    if np.abs(ball_pos[0]) > 1050 and np.abs(ball_pos[1]) < 100:
+    if np.abs(ball_pos[0]) > 1100 and np.abs(ball_pos[1]) < 125:
         action = ActionCmd()
         action.target.x = 0
         action.target.y = 0
         action.maxvel = 0
         pub.publish(action)
-        print('sleeping')
+        #print('sleeping')
         time.sleep(1.5)
         #rate2.sleep()
 
