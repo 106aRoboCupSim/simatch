@@ -70,12 +70,20 @@ def callback(data):
     off1_theta = off1.heading.theta
 
     #Get obstacle positions in global frame
-    obstacles = data.obstacleinfo
-    obstacle_list = np.empty((0,3), float)
-    obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, -125, 50]])))
-    obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, 125, 50]])))
-    for p in obstacles.pos:
-        obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
+    if isholding:
+        obstacles = data.obstacleinfo
+        obstacle_list = np.empty((0,3), float)
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, -125, 50]])))
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, 125, 50]])))
+        for p in obstacles.pos:
+            obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
+    else:
+        obstacles = data.obstacleinfo
+        obstacle_list = np.empty((0,3), float)
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, -125, 50]])))
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, 125, 50]])))
+        for p in obstacles.pos:
+            obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 15]])))
 
     print(should_pass(off1_pos, robot_pos, obstacle_list))
 
