@@ -105,7 +105,7 @@ def callback(data):
         action.target_ori = thetaDes
         pub.publish(action)
         rate.sleep()
-    elif not in_range(robot_pos, goalie_origin, 100):
+    elif not in_range(robot_pos, goalie_origin, 50):
         #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
         target = plan(goalie_origin, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
