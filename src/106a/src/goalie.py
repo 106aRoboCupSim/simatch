@@ -86,25 +86,40 @@ def callback(data):
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     
         #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
-        if in_range(robot_pos, t, 100):
+        if in_range(robot_pos, t, 150):
             target = np.array([0, 0])
         else:
             target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
         
         #Generate ActionCmd() and publish to hwcontroller
-        angle_to_other = np.arctan2(off1_pos[1] - robot_pos[1], off1_pos[0] - robot_pos[0]) - theta
-        action = ActionCmd()
-        action.target.x = target[0]
-        action.target.y = target[1]
-        action.maxvel = 300
-        action.handle_enable = 1
-        action.target_ori = (angle_to_other - theta) / 2
-        pub.publish(action)
-        rate.sleep()
-        if action.target_ori - np.pi/4 <np.abs(theta) < action.target_ori + np.pi/4:
-            action.strength = 100
-            action.shootPos = 1
+        if should_pass(off1_pos, robot_pos, obstacle_list):
+            angle_to_other = np.arctan2(off1_pos[1] - robot_pos[1], off1_pos[0] - robot_pos[0]) - theta
+            action = ActionCmd()
+            action.target.x = target[0]
+            action.target.y = target[1]
+            action.maxvel = 300
+            action.handle_enable = 1
+            action.target_ori = (angle_to_other - theta) / 2
             pub.publish(action)
+            rate.sleep()
+            if action.target_ori - np.pi/3 < theta < action.target_ori + np.pi/3:
+                action.strength = 100
+                action.shootPos = 1
+                pub.publish(action)
+        else:
+            action = ActionCmd()
+            action.target.x = target[0]
+            action.target.y = target[1]
+            action.maxvel = 300
+            action.handle_enable = 1
+            action.target_ori = -theta
+            pub.publish(action)
+            rate.sleep()
+            if np.abs(theta) < np.pi/4:
+                action.strength = 100
+                action.shootPos = 1
+                pub.publish(action)
+            
 
     elif in_range(robot_pos, ball_pos, 500) and in_range(ball_pos, goalie_origin, 600):
         #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
