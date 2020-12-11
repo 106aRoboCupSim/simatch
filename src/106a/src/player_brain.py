@@ -15,7 +15,7 @@ isdribble = 0
 shoot_range = 500
 
 #Bare minimum is 50
-obstacle_radius = 300
+obstacle_radius = 75
 
 
 # For plotting
