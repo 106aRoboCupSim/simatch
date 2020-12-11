@@ -12,6 +12,12 @@ if str(sys.argv[2]) == '1':
     ROBOT_NAME = 'rival' + str(sys.argv[1])
 opponent_goal = np.array([1100.0, 0.0])
 isdribble = 0
+shoot_range = 500
+
+#Bare minimum is 50
+obstacle_radius = 300
+
+
 # For plotting
 # import math
 # import matplotlib.pyplot as plt
@@ -63,14 +69,14 @@ def callback(data):
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 75]])))
     #print(obstacle_list)
     #print(r.isdribble)
-    target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
+    target = plan(ball_pos, robot_pos, obstacle_list, obstacle_radius, 400)
     thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     #print(isdribble)
     action = ActionCmd()
-    if isdribble and np.linalg.norm(opponent_goal - robot_pos) > 400:
-        target = plan(opponent_goal, robot_pos, obstacle_list, 100, 400)
+    if isdribble and np.linalg.norm(opponent_goal - robot_pos) > shoot_range:
+        target = plan(opponent_goal, robot_pos, obstacle_list, obstacle_radius, 400)
         thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
-    elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < 400:
+    elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < shoot_range:
         thetaDes = thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
         target = robot_pos
         action.shootPos = 1
