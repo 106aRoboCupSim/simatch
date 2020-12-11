@@ -42,6 +42,13 @@ def in_range(robot_pos, ball_pos, thresh=100):
     print(thresh, val)
     return val < thresh
 
+def should_pass(mate_pos, robot_pos, obstacles):
+    #if exists_clear_path(mate_pos, robot_pos, obstacles):
+    #    return random.random() < 2
+    obstacle_list = np.empty((0,3), float)
+    return exists_clear_path(mate_pos, robot_pos, obstacle_list)
+    #return False
+
 isholding = 0
 def holding_callback(data):
     global isholding
@@ -58,6 +65,10 @@ def callback(data):
     robot_pos = np.array([r.pos.x, r.pos.y])
     theta = r.heading.theta
 
+    off1 = data.robotinfo[1]
+    off1_pos = np.array([off1.pos.x, off1.pos.y])
+    off1_theta = off1.heading.theta
+
     #Get obstacle positions in global frame
     obstacles = data.obstacleinfo
     obstacle_list = np.empty((0,3), float)
@@ -66,6 +77,8 @@ def callback(data):
     for p in obstacles.pos:
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
 
+    print(should_pass(off1_pos, robot_pos, obstacle_list))
+
     if isholding:
         print("Here");
         t = np.array([-700, 0]) 
@@ -73,22 +86,27 @@ def callback(data):
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     
         #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
-        target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
+        if in_range(robot_pos, t, 100):
+            target = np.array([0, 0])
+        else:
+            target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
         
         #Generate ActionCmd() and publish to hwcontroller
+        angle_to_other = np.arctan2(off1_pos[1] - robot_pos[1], off1_pos[0] - robot_pos[0]) - theta
         action = ActionCmd()
         action.target.x = target[0]
         action.target.y = target[1]
         action.maxvel = 300
         action.handle_enable = 1
-        action.target_ori = -theta
+        action.target_ori = (angle_to_other - theta) / 2
         pub.publish(action)
         rate.sleep()
-        action.strength = 100
-        action.shootPos = 1
-        pub.publish(action)
+        if action.target_ori - np.pi/4 <np.abs(theta) < action.target_ori + np.pi/4:
+            action.strength = 100
+            action.shootPos = 1
+            pub.publish(action)
 
-    if in_range(robot_pos, ball_pos, 500) and in_range(ball_pos, goalie_origin, 600):
+    elif in_range(robot_pos, ball_pos, 500) and in_range(ball_pos, goalie_origin, 600):
         #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
         target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
@@ -105,7 +123,7 @@ def callback(data):
         action.target_ori = thetaDes
         pub.publish(action)
         rate.sleep()
-    elif not in_range(robot_pos, goalie_origin, 50):
+    elif not in_range(robot_pos, goalie_origin, 100):
         #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
         target = plan(goalie_origin, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
