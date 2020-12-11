@@ -312,7 +312,7 @@ The gazebo plugin subscribes to topic **"nubotcontrol/velcmd"**  for omnidirecit
 | :-----------------------------------: | :-------------------------: | :----------------------------------------------------------- |
 |    **/nubot1/nubotcontrol/velcmd**    |     nubot_common/VelCmd     | float32 Vx <br> float32 Vy <br>  float32 w                   |
 | **/nubot1/omnivision/OmniVisionInfo** | nubot_common/OminiVisionInfo | Header header <br> [BallInfo][8] ballinfo <br> [ObstaclesInfo][9] obstacleinfo <br> [RobotInfo][10][]  robotinfo |
-| **/nubot1/nubotcontrol/action_cmd** | nubot_common/ActionCmd |  Point2d target <br> float32 target_ori <br> float32 target_w <br> Point2d target_vel <br> float32 maxvel <br> float32 maxw <br> Point2d robot_pos <br> Point2d robot_vel <br> float32 robot_ori <br> float32 robot_w <br> char move_action <br> char rotate_acton <br> int64 handle_enable   float32 strength <br> int64 shootPos |
+| **/nubot1/nubotcontrol/action_cmd** | nubot_common/ActionCmd |  Point2d target <br> float32 target_ori <br> float32 target_w <br> Point2d target_vel <br> float32 maxvel <br> float32 maxw <br> Point2d robot_pos <br> Point2d robot_vel <br> float32 robot_ori <br> float32 robot_w <br> char move_action <br> char rotate_action <br> int64 handle_enable   float32 strength <br> int64 shootPos |
 
 
 
@@ -408,7 +408,7 @@ However, the code related to receiving game comamnds and doing corresponding act
         {
             /// 运动参数
             action_cmd_.move_action =No_Action;
-            action_cmd_.rotate_acton=No_Action;
+            action_cmd_.rotate_action=No_Action;
         }
         /** 机器人在开始之前的跑位. 开始静态传接球的目标点计算*/
         else if(match_mode_ > STOPROBOT && match_mode_ <= DROPBALL)
@@ -452,7 +452,7 @@ void  OppDefaultReady_()
         if(move2target(target, robot_pos_))
             move2ori(br.angle().radian_, robot_ori_.radian_);
         action_cmd_.move_action = Positioned_Static;
-        action_cmd_.rotate_acton= Positioned_Static;
+        action_cmd_.rotate_action= Positioned_Static;
         action_cmd_.rotate_mode = 0;
     }
 ```
@@ -471,7 +471,7 @@ void  OppDefaultReady_()
         if(move2target(parking_target, robot_pos_))    //停到目标点10cm附近就不用动了，只需调整朝向
             move2ori(tar_ori, robot_ori_.radian_);
         action_cmd_.move_action = Positioned_Static;
-        action_cmd_.rotate_acton= Positioned_Static;
+        action_cmd_.rotate_action= Positioned_Static;
         action_cmd_.rotate_mode = 0;
     }
 ```
@@ -500,13 +500,13 @@ void  OppDefaultReady_()
                 if(move2ori(b2r.angle().radian_,robot_ori_.radian_))
                     move2target(ball_pos_,robot_pos_);
                 action_cmd_.move_action = CatchBall;
-                action_cmd_.rotate_acton= CatchBall;
+                action_cmd_.rotate_action= CatchBall;
                 action_cmd_.rotate_mode = 0;
             }
             else if(robot_pos_.distance(tmp)>20.0)
             {
                 action_cmd_.move_action = MoveWithBall;
-                action_cmd_.rotate_acton= MoveWithBall;
+                action_cmd_.rotate_action= MoveWithBall;
                 action_cmd_.rotate_mode = 0;
                 if(move2ori(t2r.angle().radian_,robot_ori_.radian_))
                     move2target(tmp,robot_pos_);
@@ -514,7 +514,7 @@ void  OppDefaultReady_()
             else
             {
                 action_cmd_.move_action = TurnForShoot;
-                action_cmd_.rotate_acton= TurnForShoot;
+                action_cmd_.rotate_action= TurnForShoot;
                 action_cmd_.rotate_mode = 0;
                 move2target(robot_pos_,robot_pos_);
                 if(move2ori(shoot_line.angle().radian_,robot_ori_.radian_,0.5*DEG2RAD))
@@ -535,7 +535,7 @@ void  OppDefaultReady_()
         else
         {
             action_cmd_.move_action=No_Action;
-            action_cmd_.rotate_acton=No_Action;
+            action_cmd_.rotate_action=No_Action;
             if(shoot_flag)
                 shoot_count++;
             if(shoot_count>20)
@@ -608,7 +608,7 @@ void setEthercatCommand()
         /// initialize the command
         nubot_common::ActionCmd command;
         command.move_action  =No_Action;
-        command.rotate_acton =No_Action;
+        command.rotate_action =No_Action;
         command.rotate_mode  =0;
         command.maxvel = 0;
         command.maxw   = 0;
@@ -622,7 +622,7 @@ void setEthercatCommand()
         command.robot_w=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getW();
         /// 运动参数
         command.move_action =action_cmd_.move_action;
-        command.rotate_acton=action_cmd_.rotate_acton;
+        command.rotate_action=action_cmd_.rotate_action;
         command.rotate_mode =action_cmd_.rotate_mode;
         command.target      =action_cmd_.target;
         command.target_vel  =action_cmd_.target_vel;

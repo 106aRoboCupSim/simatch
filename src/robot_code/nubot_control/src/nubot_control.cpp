@@ -115,7 +115,7 @@ public:
         action_cmd_.maxvel=MAXVEL;
         action_cmd_.maxw=MAXW;
         action_cmd_.move_action=No_Action;
-        action_cmd_.rotate_acton=No_Action;
+        action_cmd_.rotate_action=No_Action;
         action_cmd_.rotate_mode=1;
         action_cmd_.shootPos = 0;
         action_cmd_.strength = 0;
@@ -237,7 +237,7 @@ public:
         {
             /// 运动参数 Motion parameters
             action_cmd_.move_action =No_Action;
-            action_cmd_.rotate_acton=No_Action;
+            action_cmd_.rotate_action=No_Action;
         }
         /** 机器人在开始之前的跑位. 开始静态传接球的目标点计算
             The robot's running position before the start. Start calculation of the goal point for static passing and receiving*/
@@ -257,7 +257,7 @@ public:
 
 
     void positioning()
-    // Do this shit
+    // Do this stuff
     {
         switch (match_mode_)
         {
@@ -344,7 +344,7 @@ public:
         if(move2target(target, robot_pos_))
             move2ori(br.angle().radian_, robot_ori_.radian_);
         action_cmd_.move_action = Positioned_Static;
-        action_cmd_.rotate_acton= Positioned_Static;
+        action_cmd_.rotate_action= Positioned_Static;
         action_cmd_.rotate_mode = 0;
     }
     void  OurDefaultReady_()
@@ -374,7 +374,7 @@ public:
         if(move2target(target, robot_pos_))
             move2ori(br.angle().radian_, robot_ori_.radian_);
         action_cmd_.move_action = Positioned_Static;
-        action_cmd_.rotate_acton= Positioned_Static;
+        action_cmd_.rotate_action= Positioned_Static;
         action_cmd_.rotate_mode = 0;
     }
 
@@ -392,7 +392,7 @@ public:
         if(move2target(parking_target, robot_pos_))    //停到目标点10cm附近就不用动了，只需调整朝向 You don’t need to move when you stop 10cm near the target point, just adjust the direction
             move2ori(tar_ori, robot_ori_.radian_);
         action_cmd_.move_action = Positioned_Static;
-        action_cmd_.rotate_acton= Positioned_Static;
+        action_cmd_.rotate_action= Positioned_Static;
         action_cmd_.rotate_mode = 0;
     }
 
@@ -428,13 +428,13 @@ public:
                 if(move2ori(b2r.angle().radian_,robot_ori_.radian_))
                     move2target(ball_pos_,robot_pos_);
                 action_cmd_.move_action = CatchBall;
-                action_cmd_.rotate_acton= CatchBall;
+                action_cmd_.rotate_action= CatchBall;
                 action_cmd_.rotate_mode = 0;
             }
             else if(robot_pos_.distance(tmp)>30.0)
             {
                 action_cmd_.move_action = MoveWithBall;
-                action_cmd_.rotate_acton= MoveWithBall;
+                action_cmd_.rotate_action= MoveWithBall;
                 action_cmd_.rotate_mode = 0;
                 if(move2ori(t2r.angle().radian_,robot_ori_.radian_))
                     move2target(tmp,robot_pos_);
@@ -442,7 +442,7 @@ public:
             else
             {
                 action_cmd_.move_action = TurnForShoot;
-                action_cmd_.rotate_acton= TurnForShoot;
+                action_cmd_.rotate_action= TurnForShoot;
                 action_cmd_.rotate_mode = 0;
                 move2target(tmp,robot_pos_);
                 move2ori(shoot_line.angle().radian_,robot_ori_.radian_);
@@ -464,7 +464,7 @@ public:
         else
         {
             action_cmd_.move_action=No_Action;
-            action_cmd_.rotate_acton=No_Action;
+            action_cmd_.rotate_action=No_Action;
             if(shoot_flag)
                 shoot_count++;
             if(shoot_count>20)
@@ -524,7 +524,7 @@ public:
         /// initialize the command
         nubot_common::ActionCmd command;
         command.move_action  =No_Action;
-        command.rotate_acton =No_Action;
+        command.rotate_action =No_Action;
         command.rotate_mode  =0;
         command.maxvel = 0;
         command.maxw   = 0;
@@ -538,7 +538,7 @@ public:
         command.robot_w=world_model_info_.RobotInfo_[world_model_info_.AgentID_-1].getW();
         /// 运动参数 Motion parameters
         command.move_action =action_cmd_.move_action;
-        command.rotate_acton=action_cmd_.rotate_acton;
+        command.rotate_action=action_cmd_.rotate_action;
         command.rotate_mode =action_cmd_.rotate_mode;
         command.target      =action_cmd_.target;
         command.target_vel  =action_cmd_.target_vel;
