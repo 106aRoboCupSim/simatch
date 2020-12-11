@@ -28,6 +28,24 @@ do
    sleep 0.5
 done 
 
+
+for ((i=2; i<=magenta_num; ++i))
+do
+    #rosrun nubot_control    nubot_control_node ${magenta_prefix}${i}   __name:=${magenta_prefix}_nubot_control${i} &
+    #PIDS[kill_num]=$!
+    #let "kill_num=kill_num+1"
+   
+    #rosrun world_model      world_model_node   ${magenta_prefix}${i}    __name:=${magenta_prefix}_world_model${i} &
+    #PIDS[kill_num]=$!
+    #let "kill_num=kill_num+1"
+   
+    rosrun 106a player_brain.py ${i} 1 &
+    PIDS[kill_num]=$!
+    let "kill_num=kill_num+1"
+
+   sleep 0.5
+done 
+
 ######### Don't to use RTDB for convenience. Use "rostopic pub" to publish game control
 ########  info instead.
 

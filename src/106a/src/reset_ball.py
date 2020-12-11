@@ -33,6 +33,7 @@ def callback(data):
 
     if ball_x >= 11 and abs(ball_y) <= 1.25:
         time.sleep(sleeptime)
+        time.sleep(1.5)
         black_goal = ModelState()
         black_goal.model_name = 'football'
         black_goal.pose.position.x = 0.0
