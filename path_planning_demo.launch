@@ -1,0 +1,6 @@
+<launch>
+  <include file="launch/path_planning_demo.launch"> </include>
+  <node name="cyan_robot" pkg="106a" type="one_nubot.sh"/>
+  <node name="magenta_robot" pkg="106a" type="obstacle_controllers.sh"/>
+  <node name="reset_ball_node" pkg="106a" type="reset_path_planning_demo.py"></node>
+</launch>

@@ -10,46 +10,19 @@ cyan_prefix=$(rosparam get /cyan/prefix)
 cyan_num=$(rosparam get /cyan/num)
 kill_num=0                                  
 
-### spawn cyan robots
-for ((i=1; i<=cyan_num; ++i))
-do
-    #rosrun nubot_control    nubot_control_node ${cyan_prefix}${i}   __name:=${cyan_prefix}_nubot_control${i} &
-    #PIDS[kill_num]=$!
-    #let "kill_num=kill_num+1"
-   
-    #rosrun world_model      world_model_node   ${cyan_prefix}${i}    __name:=${cyan_prefix}_world_model${i} &
-    #PIDS[kill_num]=$!
-    #let "kill_num=kill_num+1"
-   
-    rosrun nubot_hwcontroller    nubot_hwcontroller_node ${cyan_prefix}${i}   __name:=${cyan_prefix}_nubot_hwcontroller${i} &
-    PIDS[kill_num]=$!
-    let "kill_num=kill_num+1"
 
-   sleep 0.5
-done 
-
-rosrun 106a goalie.py 0 &
+rosrun nubot_hwcontroller    nubot_hwcontroller_node ${cyan_prefix}1   __name:=${cyan_prefix}_nubot_hwcontroller1 &
 PIDS[kill_num]=$!
 let "kill_num=kill_num+1"
 
 sleep 0.5
 
-for ((i=2; i<=cyan_num; ++i))
-do
-    #rosrun nubot_control    nubot_control_node ${magenta_prefix}${i}   __name:=${magenta_prefix}_nubot_control${i} &
-    #PIDS[kill_num]=$!
-    #let "kill_num=kill_num+1"
-   
-    #rosrun world_model      world_model_node   ${magenta_prefix}${i}    __name:=${magenta_prefix}_world_model${i} &
-    #PIDS[kill_num]=$!
-    #let "kill_num=kill_num+1"
-   
-    rosrun 106a player_brain.py ${i} 0 &
-    PIDS[kill_num]=$!
-    let "kill_num=kill_num+1"
+rosrun 106a solo_player_brain.py 1 0 &
+PIDS[kill_num]=$!
+let "kill_num=kill_num+1"
 
-   sleep 0.5
-done
+sleep 0.5
+
 
 ######### Don't to use RTDB for convenience. Use "rostopic pub" to publish game control
 ########  info instead.

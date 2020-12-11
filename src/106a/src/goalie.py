@@ -1,108 +1,192 @@
 #!/usr/bin/env python
 import rospy
 import numpy as np
+from realtimepseudoAstar import plan
+from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
-from finite_dyn_window_2 import *
-pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
-rospy.init_node('goalie', anonymous=True)
-hertz = 100
-rate = rospy.Rate(hertz) # 10hz
+from nubot_common.msg import BallIsHolding
+import sys
 
+# For plotting
+# import math
+# import matplotlib.pyplot as plt
 
+# Initialize publisher and rate
+pub = 0
+if int(sys.argv[1]) == 0:
+    pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
+else: 
+    pub = rospy.Publisher('/rival1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
+rospy.init_node('pubsub', anonymous=True)
+hertz = 10
+rate = rospy.Rate(hertz)
 
-def P_controller(error_x, error_y, error_tht, d_xdes, d_ydes, d_thtdes):
-    control = VelCmd()
+goalie_origin = np.array([-950, 0])
+def line_to_goal(goal_pos, current_pos, obstacles):
+    if exists_clear_path(goal_pos, current_pos, obstacles):
+        return np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
+    return False
 
-    timeConst_x = 0.1
-    timeConst_y = 0.1
-    timeConst_tht = 0.1
+def exists_clear_path(goal_pos, current_pos, obstacles):
+    AB = goal_pos - current_pos
+    for o in obstacles:
+        AC = o[:2] - current_pos
+        AD = AB * np.dot(AC, AB) / np.dot(AB, AB)
+        D = current_pos + AD
+        if np.linalg.norm(D - o[:2]) <= o[2]:
+            return False
+    return True
 
-    control.Vx =  -(1/timeConst_x)*error_x + d_xdes
-    control.Vy =  -(1/timeConst_y)*error_y + d_ydes
-    control.w  =  -(1/timeConst_tht)*error_tht + d_thtdes
+def in_range(robot_pos, ball_pos, thresh=100):
+    val = np.linalg.norm(robot_pos - ball_pos)
+    print(thresh, val)
+    return val < thresh
 
-    return control
+def should_pass(mate_pos, robot_pos, obstacles):
+    #if exists_clear_path(mate_pos, robot_pos, obstacles):
+    #    return random.random() < 2
+    obstacle_list = np.empty((0,3), float)
+    return exists_clear_path(mate_pos, robot_pos, obstacle_list)
+    #return False
 
-def target_global_to_robot_coords(t_global_x, t_global_y, r_global_x, r_global_y, theta):
-    c = np.cos(theta)
-    s = np.sin(theta)
-    t_robot_x = -(c * t_global_x) + (s * t_global_y) + (t_global_x - r_global_x)
-    t_robot_y =  (s * t_global_x) + (c * t_global_y) + (t_global_y - r_global_y)
-
-    return [t_robot_x, t_robot_y]
-
-
+isholding = 0
+def holding_callback(data):
+    global isholding
+    isholding = int(data.BallIsHolding)
 
 def callback(data):
+    
+    #Get ball position in global frame
     b = data.ballinfo
-    # print(b)
-    # ball_x = b.pos.x
-    # ball_y = b.pos.y
+    ball_pos = np.array([b.pos.x, b.pos.y])
 
-    ball_x = 100
-    ball_y = 100
-
+    #Get robot position and heading in global frame
     r = data.robotinfo[0]
-    robot_x = r.pos.x
-    robot_y = r.pos.y
-    robot_vel = np.sqrt(r.vtrans.x**2 + r.vtrans.y**2)
-    robot_omega = r.vrot
+    robot_pos = np.array([r.pos.x, r.pos.y])
     theta = r.heading.theta
-    # print(robot_vel, type(robot_vel))
-    # print(robot_omega, type(robot_omega))
-    # print("ball", ball_x, ball_y)
-    #rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[-1100, 1100], obstacle_list=[(-500, 0, 100)], max_iter=1)
-    #rrt = RRT_closest(start=[robot_x, robot_y], goal=[ball_x, ball_y], rand_area=[-1100, 1100], obstacle_list=[], max_iter=10)
 
-    #path = rrt.planning(animation=False)
+    off1 = data.robotinfo[1]
+    off1_pos = np.array([off1.pos.x, off1.pos.y])
+    off1_theta = off1.heading.theta
 
-    path = get_dyn_window_path([robot_x, robot_y, theta, robot_vel, robot_omega], ball_x, ball_y)
+    #Get obstacle positions in global frame
+    if isholding:
+        obstacles = data.obstacleinfo
+        obstacle_list = np.empty((0,3), float)
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, -125, 50]])))
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, 125, 50]])))
+        for p in obstacles.pos:
+            obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
+    else:
+        obstacles = data.obstacleinfo
+        obstacle_list = np.empty((0,3), float)
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, -125, 50]])))
+        obstacle_list = np.concatenate((obstacle_list, np.array([[-1150, 125, 50]])))
+        for p in obstacles.pos:
+            obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 15]])))
 
-    current_pos = [robot_x, robot_y]
-    # for i in range(len(path))[:1]:
-    target = path[0]
-    print('path[0]' + str(path[0]))
-    target = target_global_to_robot_coords(target[0], target[1], robot_x, robot_y, theta)
-    # print(target)
-    action = ActionCmd()
-    action.target.x = target[0]
-    action.target.y = target[1]
-    print("actionx", action.target.x)
-    print("actiony", action.target.y)
+    print(should_pass(off1_pos, robot_pos, obstacle_list))
 
-    action.maxvel = 300
-    action.handle_enable = 1
+    if isholding:
+        print("Here");
+        t = np.array([-700, 0]) 
+        target = plan(t, robot_pos, obstacle_list, 100, 400)
+        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
+    
+        #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
+        if in_range(robot_pos, t, 150):
+            target = np.array([0, 0])
+        else:
+            target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
+        
+        #Generate ActionCmd() and publish to hwcontroller
+        if should_pass(off1_pos, robot_pos, obstacle_list):
+            angle_to_other = np.arctan2(off1_pos[1] - robot_pos[1], off1_pos[0] - robot_pos[0]) - theta
+            action = ActionCmd()
+            action.target.x = target[0]
+            action.target.y = target[1]
+            action.maxvel = 300
+            action.handle_enable = 1
+            action.target_ori = (angle_to_other - theta) / 2
+            pub.publish(action)
+            rate.sleep()
+            if action.target_ori - np.pi/3 < theta < action.target_ori + np.pi/3:
+                action.strength = 100
+                action.shootPos = 1
+                pub.publish(action)
+        else:
+            action = ActionCmd()
+            action.target.x = target[0]
+            action.target.y = target[1]
+            action.maxvel = 300
+            action.handle_enable = 1
+            action.target_ori = -theta
+            pub.publish(action)
+            rate.sleep()
+            if np.abs(theta) < np.pi/4:
+                action.strength = 100
+                action.shootPos = 1
+                pub.publish(action)
+            
 
-    action.target_ori = 0
+    elif in_range(robot_pos, ball_pos, 500) and in_range(ball_pos, goalie_origin, 600):
+        #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
+        target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
+        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
+    
+        #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
+        target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
+        
+        #Generate ActionCmd() and publish to hwcontroller
+        action = ActionCmd()
+        action.target.x = target[0]
+        action.target.y = target[1]
+        action.maxvel = 300
+        action.handle_enable = 1
+        action.target_ori = thetaDes
+        pub.publish(action)
+        rate.sleep()
+    elif not in_range(robot_pos, goalie_origin, 100):
+        #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
+        target = plan(goalie_origin, robot_pos, obstacle_list, 100, 400)
+        thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
+    
+        #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
+        target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta) 
+        
+        #Generate ActionCmd() and publish to hwcontroller
+        action = ActionCmd()
+        action.target.x = target[0]
+        action.target.y = target[1]
+        action.maxvel = 300
+        action.handle_enable = 1
+        action.target_ori = thetaDes
+        pub.publish(action)
+        rate.sleep()
+    else:
+        action = ActionCmd()
+        action.target.x = 0
+        action.target.y = 0
+        pub.publish(action)
+        rate.sleep()
+        pass
+        
 
-    pub.publish(action)
-    rate.sleep()
 
-    #c = P_controller(target[0] - prev_target[0], target[1] - prev_target[1], 0, target[0], target[1], 0)
-    #c = P_controller(prev_target[0] - target[0], prev_target[1] - target[1], 0, target[0], target[1], 0)
-    #c = P_controller(prev_target[0] - target[0], prev_target[1] - target[1], 0, 0, 0, 0)
-    #pub.publish(c)
-    #rate.sleep()
-    # print('robot pos:')
-    # print(robot_x)
-    # print(robot_y)
-    # print('ball_pos')
-    # print(ball_x)
-    # print(ball_y)
-    # list.reverse(path)
-    # print('path:')
-    # print(path)
-    # print(np.shape(path))
-    # for target in path:
-    #     c = P_controller(prev_target[0] - prev_target[0], prev_target[1] - target[1], 0, target[0], target[1], 0)
-    #     pub.publish(c)
-    #     prev_target = target
-    #     rate.sleep()
-
+    
 
 
 def listener():
-    rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+    robot = int(sys.argv[1])
+    print(robot, type(robot))
+    if robot == 0:
+        rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+        rospy.Subscriber("/NuBot1/ballisholding/BallIsHolding", BallIsHolding, holding_callback, queue_size=1)
+    elif robot == 1:
+        rospy.Subscriber("/rival1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+        rospy.Subscriber("/rival1/ballisholding/BallIsHolding", BallIsHolding, holding_callback, queue_size=1)
+    else:
+        print("Call 0 for cyan and 1 for magenta")
 
     rospy.spin()
 
