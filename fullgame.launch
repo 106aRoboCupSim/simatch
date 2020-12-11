@@ -2,5 +2,5 @@
   <include file="$(find nubot_gazebo)/launch/game_ready.launch"> </include>
   <node name="cyan_robot" pkg="nubot_common" type="cyan_hw_robot.sh"/>
   <node name="magenta_robot" pkg="nubot_common" type="magenta_hw_robot.sh"/>
-  <node name="reset_ball_node" pkg="106a" type="example.py" output="screen"></node>
+  <node name="reset_ball_node" pkg="106a" type="reset_ball.py"></node>
 </launch>

@@ -28,6 +28,12 @@ do
    sleep 0.5
 done 
 
+rosrun 106a goalie.py 1 &
+PIDS[kill_num]=$!
+let "kill_num=kill_num+1"
+
+sleep 0.5
+
 
 for ((i=2; i<=magenta_num; ++i))
 do
@@ -44,7 +50,7 @@ do
     let "kill_num=kill_num+1"
 
    sleep 0.5
-done 
+done
 
 ######### Don't to use RTDB for convenience. Use "rostopic pub" to publish game control
 ########  info instead.

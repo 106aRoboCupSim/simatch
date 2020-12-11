@@ -28,6 +28,12 @@ do
    sleep 0.5
 done 
 
+rosrun 106a goalie.py 0 &
+PIDS[kill_num]=$!
+let "kill_num=kill_num+1"
+
+sleep 0.5
+
 for ((i=2; i<=cyan_num; ++i))
 do
     #rosrun nubot_control    nubot_control_node ${magenta_prefix}${i}   __name:=${magenta_prefix}_nubot_control${i} &
