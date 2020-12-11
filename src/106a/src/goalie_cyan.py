@@ -5,13 +5,18 @@ from realtimepseudoAstar import plan
 from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
 from nubot_common.msg import BallIsHolding
+import sys
 
 # For plotting
 # import math
 # import matplotlib.pyplot as plt
 
 # Initialize publisher and rate
-pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
+pub = 0
+if int(sys.argv[1]) == 0:
+    pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
+else: 
+    pub = rospy.Publisher('/rival1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
 rospy.init_node('pubsub', anonymous=True)
 hertz = 10
 rate = rospy.Rate(hertz)
@@ -34,7 +39,7 @@ def exists_clear_path(goal_pos, current_pos, obstacles):
 
 def in_range(robot_pos, ball_pos, thresh=100):
     val = np.linalg.norm(robot_pos - ball_pos)
-    #print(thresh, val)
+    print(thresh, val)
     return val < thresh
 
 isholding = 0
@@ -62,7 +67,7 @@ def callback(data):
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 100]])))
 
     if isholding:
-        #print("Here");
+        print("Here");
         t = np.array([-700, 0]) 
         target = plan(t, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
@@ -131,8 +136,16 @@ def callback(data):
 
 
 def listener():
-    rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
-    rospy.Subscriber("/NuBot1/ballisholding/BallIsHolding", BallIsHolding, holding_callback, queue_size=1)
+    robot = int(sys.argv[1])
+    print(robot, type(robot))
+    if robot == 0:
+        rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+        rospy.Subscriber("/NuBot1/ballisholding/BallIsHolding", BallIsHolding, holding_callback, queue_size=1)
+    elif robot == 1:
+        rospy.Subscriber("/rival1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
+        rospy.Subscriber("/rival1/ballisholding/BallIsHolding", BallIsHolding, holding_callback, queue_size=1)
+    else:
+        print("Call 0 for cyan and 1 for magenta")
 
     rospy.spin()
 
