@@ -15,7 +15,15 @@ if str(sys.argv[2]) == '1':
     ROBOT_NAME = 'rival' + str(sys.argv[1])
 opponent_goal = np.array([1100.0, 0.0])
 isdribble = 0
+ball_handler1 = (0, "NuBot1") 
+ball_handler2 = (0, "NuBot2") 
+ball_handler3 = (0, "NuBot3") 
+ball_handler4 = (0, "rival1") 
+ball_handler5 = (0, "rival2")
+ball_handler6 = (0, "rival3")
+ball_handler_current = "nobody"
 shoot_range = 500
+
 
 #Bare minimum is 50
 obstacle_radius = 300
@@ -33,7 +41,6 @@ if str(sys.argv[1]) == '3':
 
 # Initialize publisher and rate
 pub = rospy.Publisher('/' + str(ROBOT_NAME)+'/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
-pub2 = rospy.Publisher('/' + str(ROBOT_NAME)[0:5]+'/ball_holder', String, queue_size=1)
 rospy.init_node(str(ROBOT_NAME) + '_brain', anonymous=False)
 hertz = 10
 rate = rospy.Rate(hertz)
@@ -53,7 +60,6 @@ rate = rospy.Rate(hertz)
 #         plt.plot(xl, yl, color)
 
 def callback(data):
-    print("hi test")
 
     def in_range(pos_1, pos_2, dist=300):
         val = np.linalg.norm(pos_1 - pos_2)
@@ -106,12 +112,18 @@ def callback(data):
         dist_to_teammate = LA.norm(my_pos - mate_pos)
         dist_to_goal = LA.norm(my_pos - opponent_goal)
         ang_to_teammate = np.arctan2(mate_pos[1] - my_pos[1], mate_pos[0] - my_pos[0]) - my_theta
-        obstructed = not exists_clear_path(opponent_goal, my_pos, obstacle_list)
-        if dist_to_teammate < dist_to_goal or obstructed:
+        obstructed_goal = not exists_clear_path(opponent_goal, my_pos, obstacle_list)
+        obstructed_mate = not exists_clear_path(mate_pos, my_pos, obstacle_list)
+        if ((dist_to_teammate < dist_to_goal) \
+            or (obstructed_goal and not obstructed_mate)) \
+            and (dist_to_teammate > 200) \
+            and (ang_to_teammate-np.pi/30 < my_theta and my_theta < ang_to_teammate+np.pi/30):
+
             target = my_pos
             thetaDes = ang_to_teammate
+            action.maxvel = 250
             action.shootPos = 1
-            action.strength = dist_to_teammate / 10
+            action.strength = dist_to_teammate / 50
             passing = True
 
     def has_ball_priority(my_pos, mate_pos):
@@ -119,32 +131,52 @@ def callback(data):
         mate_dist_to_ball = LA.norm(mate_pos - ball_pos)
         return my_dist_to_ball < mate_dist_to_ball
 
-    def team_has_ball(my_id, mate_id):
-        return 
+    def team_has_ball():
+        return ball_handler_current[0:5] == ROBOT_NAME[0:5]
     
     # WINGMAN: GET OPEN
-    if not passing and not has_ball_priority(my_pos, mate_pos):
-        target = [mate_pos[0]+ int(random.randrange(-500, 500, 100)), -mate_pos[1] + int(random.randrange(-500, 500, 100))]
+    if not passing and not has_ball_priority(my_pos, mate_pos) and team_has_ball():
+        target = [mate_pos[0]+(opponent_goal[0]-mate_pos[0])/2, 100-mate_pos[1]/2]
         thetaDes = np.arctan2(mate_pos[1] - my_pos[1], mate_pos[0] - my_pos[0]) - my_theta
         target = transform(target[0], target[1], my_pos[0], my_pos[1], my_theta)
+        action.maxvel = 300
+    elif not passing and not has_ball_priority(my_pos, mate_pos):
+        target = plan(ball_pos, my_pos, obstacle_list, obstacle_radius, 400)
+        thetaDes = np.arctan2(target[1] - my_pos[1], target[0] - my_pos[0]) - my_theta
+        target = transform(target[0], target[1], my_pos[0], my_pos[1], my_theta)
+        action.maxvel = 300
 
 
     # AGGRESSOR: GET BALL
     if not passing and has_ball_priority(my_pos, mate_pos):
+        action.maxvel = 250
         #print(obstacle_list)
         #print(r.isdribble)
         target = plan(ball_pos, my_pos, obstacle_list, obstacle_radius, 400)
         thetaDes = np.arctan2(target[1] - my_pos[1], target[0] - my_pos[0]) - my_theta
         #print(isdribble)
+        clear_shot = exists_clear_path(opponent_goal, my_pos, obstacle_list)
 
         if isdribble and np.linalg.norm(opponent_goal - my_pos) > shoot_range:
             target = plan(opponent_goal, my_pos, obstacle_list, obstacle_radius, 400)
             thetaDes = np.arctan2(opponent_goal[1] - my_pos[1], opponent_goal[0] - my_pos[0]) - my_theta
-        elif isdribble and np.linalg.norm(opponent_goal - my_pos) < shoot_range:
+        elif clear_shot and isdribble and np.linalg.norm(opponent_goal - my_pos) < shoot_range:
             thetaDes = np.arctan2(opponent_goal[1] - my_pos[1], opponent_goal[0] - my_pos[0]) - my_theta
             target = my_pos
             action.shootPos = 1
             action.strength = 200
+        elif isdribble and np.linalg.norm(opponent_goal - my_pos) < shoot_range:
+            dist_to_teammate = LA.norm(my_pos - mate_pos)
+            dist_to_goal = LA.norm(my_pos - opponent_goal)
+            ang_to_teammate = np.arctan2(mate_pos[1] - my_pos[1], mate_pos[0] - my_pos[0]) - my_theta
+            obstructed_goal = not exists_clear_path(opponent_goal, my_pos, obstacle_list)
+            obstructed_mate = not exists_clear_path(mate_pos, my_pos, obstacle_list)
+            target = my_pos
+            thetaDes = ang_to_teammate
+            action.maxvel = 250
+            action.shootPos = 1
+            action.strength = dist_to_teammate / 50
+            passing = True
         
         target = transform(target[0], target[1], my_pos[0], my_pos[1], my_theta)
 
@@ -165,7 +197,7 @@ def callback(data):
     #action = ActionCmd()
     action.target.x = target[0]
     action.target.y = target[1]
-    action.maxvel = 300
+    action.maxw = 300
     action.handle_enable = 1
     action.target_ori = thetaDes
     pub.publish(action)
@@ -189,17 +221,60 @@ def callback(data):
 def holdingballcallback(data):
     global isdribble
     isdribble = data.BallIsHolding
-    pub2.publish(str(my_id))
     
-def update_holder(data):
-    global ball_handler
-    ball_handler = data
+def update_holder1(data):
+    global ball_handler1
+    ball_handler1 = (data.BallIsHolding, "NuBot1")
+    update_holder_consolidate()
+
+def update_holder2(data):
+    global ball_handler2
+    ball_handler2 = (data.BallIsHolding, "NuBot2")
+    update_holder_consolidate()
+
+def update_holder3(data):
+    global ball_handler3
+    ball_handler3 = (data.BallIsHolding, "NuBot3")
+    update_holder_consolidate()
+
+def update_holder4(data):
+    global ball_handler4
+    ball_handler4 = (data.BallIsHolding, "rival1")
+    update_holder_consolidate()
+
+def update_holder5(data):
+    global ball_handler5
+    ball_handler5 = (data.BallIsHolding, "rival2")
+    update_holder_consolidate()
+
+def update_holder6(data):
+    global ball_handler6
+    ball_handler6 = (data.BallIsHolding, "rival3")
+    update_holder_consolidate()
+
+def update_holder_consolidate():
+    global ball_handler_current
+    l = [ball_handler1, ball_handler2, ball_handler3, ball_handler4, ball_handler5, ball_handler6]
+    for i in range(6):
+        a = l[i]
+        data, name = a
+        if int(data) == 1:
+            ball_handler_current = name
+            return
+    ball_handler_current = "nobody"
+    
 
 
 def listener():
     rospy.Subscriber("/" + str(ROBOT_NAME) + "/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)
     rospy.Subscriber("/" + str(ROBOT_NAME) + "/ballisholding/BallIsHolding", BallIsHolding, holdingballcallback, queue_size=1)
-    rospy.Subscriber("/" + str(ROBOT_NAME) + "/ball_holder", String, update_holder, queue_size=1)
+    rospy.Subscriber("/NuBot1/ballisholding/BallIsHolding", BallIsHolding, update_holder1, queue_size=1)
+    rospy.Subscriber("/NuBot2/ballisholding/BallIsHolding", BallIsHolding, update_holder2, queue_size=1)
+    rospy.Subscriber("/NuBot3/ballisholding/BallIsHolding", BallIsHolding, update_holder3, queue_size=1)
+    rospy.Subscriber("/rival1/ballisholding/BallIsHolding", BallIsHolding, update_holder4, queue_size=1)
+    rospy.Subscriber("/rival2/ballisholding/BallIsHolding", BallIsHolding, update_holder5, queue_size=1)
+    rospy.Subscriber("/rival3/ballisholding/BallIsHolding", BallIsHolding, update_holder6, queue_size=1)
+    
     rospy.spin()
 
 if __name__ == '__main__':
