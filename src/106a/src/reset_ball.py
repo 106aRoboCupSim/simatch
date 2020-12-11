@@ -17,7 +17,7 @@ def callback(data):
     ball_y = b.pos.y/100
     # print('ball_x: ' +str(ball_x))
     # print('ball_y: ' +str(ball_y))
-    sleeptime = .25
+    sleeptime = 0
     if ball_x >= 11 and abs(ball_y) >= 1.25:
         time.sleep(sleeptime)
         resetBall = ModelState()
@@ -45,7 +45,7 @@ def callback(data):
         pub.publish(black_goal)
         for i in [1,2]:
             reset_nubot = ModelState()
-            reset_nubot.model_name = 'Nubot'+str(i)
+            reset_nubot.model_name = 'NuBot'+str(i)
             reset_rival = ModelState()
             reset_rival.model_name = 'rival'+str(i)
             if i == 1:
