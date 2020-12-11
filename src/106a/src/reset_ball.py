@@ -3,6 +3,7 @@ import rospy
 from gazebo_msgs.msg import ModelState
 import numpy as np
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo
+import time
 
 pub = rospy.Publisher('/gazebo/set_model_state', ModelState, queue_size=10)
 rospy.init_node('ball_manager', anonymous=True)
@@ -16,7 +17,9 @@ def callback(data):
     ball_y = b.pos.y/100
     # print('ball_x: ' +str(ball_x))
     # print('ball_y: ' +str(ball_y))
+    sleeptime = .25
     if ball_x >= 11 and abs(ball_y) >= 1.25:
+        time.sleep(sleeptime)
         resetBall = ModelState()
         resetBall.model_name = 'football'
         resetBall.pose.position.x = 10
@@ -29,6 +32,7 @@ def callback(data):
         pub.publish(resetBall)
 
     if ball_x >= 11 and abs(ball_y) <= 1.25:
+        time.sleep(sleeptime)
         black_goal = ModelState()
         black_goal.model_name = 'football'
         black_goal.pose.position.x = 0.0
@@ -40,7 +44,6 @@ def callback(data):
         black_goal.pose.orientation.w = 0.0
         pub.publish(black_goal)
         for i in [1,2]:
-            print('hits')
             reset_nubot = ModelState()
             reset_nubot.model_name = 'Nubot'+str(i)
             reset_rival = ModelState()
@@ -84,6 +87,7 @@ def callback(data):
 
 
     if ball_y >= 7:
+        time.sleep(sleeptime)
         resetBall = ModelState()
         resetBall.model_name = 'football'
         resetBall.pose.position.x = ball_x
@@ -96,6 +100,7 @@ def callback(data):
         pub.publish(resetBall)
 
     if ball_x <= -11 and abs(ball_y) >= 1.25:
+        time.sleep(sleeptime)
         resetBall = ModelState()
         resetBall.model_name = 'football'
         resetBall.pose.position.x = -10
@@ -108,6 +113,7 @@ def callback(data):
         pub.publish(resetBall)
 
     if ball_x <= -11 and abs(ball_y) <= 1.25:
+        time.sleep(sleeptime)
         red_goal = ModelState()
         red_goal.model_name = 'football'
         red_goal.pose.position.x = 0.0
@@ -161,9 +167,8 @@ def callback(data):
                 pub.publish(reset_nubot)
                 pub.publish(reset_rival)
 
-
-
     if ball_y/100 <= -7:
+        time.sleep(sleeptime)
         resetBall = ModelState()
         resetBall.model_name = 'football'
         resetBall.pose.position.x = ball_x/100
