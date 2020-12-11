@@ -8,16 +8,16 @@ from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo, BallIsHolding
 
 ROBOT_NAME = 'NuBot' + str(sys.argv[1])
-if str(sys.argv[2]) == 'rival':
+if str(sys.argv[2]) == '1':
     ROBOT_NAME = 'rival' + str(sys.argv[1])
 opponent_goal = np.array([1100.0, 0.0])
 isdribble = 0
 shoot_range = 500
 
 #Bare minimum is 50
-obstacle_radius = 75
-plan_radius = 300
-random_obstacle_clipping = True
+obstacle_radius = 150
+plan_radius = 500
+
 
 # For plotting
 # import math
@@ -26,7 +26,7 @@ random_obstacle_clipping = True
 # Initialize publisher and rate
 pub = rospy.Publisher('/' + str(ROBOT_NAME)+'/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
 rospy.init_node(str(ROBOT_NAME) + '_brain', anonymous=False)
-hertz = 10
+hertz = 20
 rate = rospy.Rate(hertz)
 #rate2 = rospy.Rate(1)
 
@@ -70,12 +70,12 @@ def callback(data):
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, obstacle_radius]])))
     #print(obstacle_list)
     #print(r.isdribble)
-    target = plan(ball_pos, robot_pos, obstacle_list, plan_radius, 400, default_random=random_obstacle_clipping)
+    target = plan(ball_pos, robot_pos, obstacle_list, plan_radius, 400, default_random=False)
     thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
     #print(isdribble)
     action = ActionCmd()
     if isdribble and np.linalg.norm(opponent_goal - robot_pos) > shoot_range:
-        target = plan(opponent_goal, robot_pos, obstacle_list, plan_radius, 400, default_random=random_obstacle_clipping)
+        target = plan(opponent_goal, robot_pos, obstacle_list, plan_radius, 400, default_random=False)
         thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
     elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < shoot_range:
         thetaDes = thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta

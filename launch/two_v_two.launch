@@ -1,5 +1,5 @@
 <launch>
-  <rosparam file="$(find nubot_gazebo)/config/global_config.yaml" command="load" />
+  <rosparam file="launch/config/two_v_two_config.yaml" command="load" />
 
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
@@ -19,5 +19,3 @@
   <node name="robot_up" pkg="nubot_gazebo" type="robot_up.sh" output="screen"/>
 
 </launch>
-
-

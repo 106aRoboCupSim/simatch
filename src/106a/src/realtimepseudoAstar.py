@@ -2,7 +2,8 @@ import numpy as np
 
 #In-house real-time path planner inspired by RRT and A*, modified to work with moving obstacles
 
-def plan(goal_pos, current_pos, obstacles, target_distance, generate_num=6):
+def plan(goal_pos, current_pos, obstacles, target_distance, generate_num=6, default_random=True):
+
 
     if np.linalg.norm(goal_pos - current_pos) < 5:
         return current_pos
@@ -16,9 +17,21 @@ def plan(goal_pos, current_pos, obstacles, target_distance, generate_num=6):
     #Evenly spaced heading generation
     heading_options = np.linspace(0.0, 2*np.pi, num=generate_num)
 
-    #Set default target to random, in case of obstacle collision
-    random_heading = np.random.random() * np.pi * 2
-    best_target = current_pos + np.array([target_distance*np.cos(random_heading), target_distance*np.sin(random_heading)])
+    closest_obstacle = np.array([np.inf, np.inf, 0])
+    closest_obstacle_distance = np.inf
+
+    if default_random or np.shape(obstacles)[0] == 0:
+        #Set default target to random, in case of obstacle collision
+        random_heading = np.random.random() * np.pi * 2
+        best_target = current_pos + np.array([target_distance*np.cos(random_heading), target_distance*np.sin(random_heading)])
+    else:
+        for o in obstacles:
+            if np.linalg.norm(o[:2] - current_pos) < closest_obstacle_distance:
+                closest_obstacle = o
+        best_target = ((current_pos - closest_obstacle[:2]) / np.linalg.norm(closest_obstacle[:2] - current_pos)) * target_distance
+        #get the path
+
+
 
     #For each heading option, generate a potential target
     #If potential target does not route though any obstacles and is closer to goal than current best_target, update best_target to potential_target
