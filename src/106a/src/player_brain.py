@@ -8,7 +8,7 @@ from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo, BallIsHolding
 
 ROBOT_NAME = 'NuBot' + str(sys.argv[1])
-if str(sys.argv[2]) == 'rival':
+if str(sys.argv[2]) == '1':
     ROBOT_NAME = 'rival' + str(sys.argv[1])
 opponent_goal = np.array([1100.0, 0.0])
 isdribble = 0
@@ -19,7 +19,7 @@ obstacle_radius = 75
 plan_radius = 300
 random_obstacle_clipping = True
 
-# For plotting
+# #For plotting
 # import math
 # import matplotlib.pyplot as plt
 
@@ -30,7 +30,7 @@ hertz = 10
 rate = rospy.Rate(hertz)
 #rate2 = rospy.Rate(1)
 
-# For plotting path and path plan
+# #For plotting path and path plan
 # targets_generated_x = []
 # targets_generated_y = []
 # robot_position_x = []
@@ -68,12 +68,14 @@ def callback(data):
     obstacle_list = np.empty((0,3), float)
     for p in obstacles.pos:
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, obstacle_radius]])))
-    #print(obstacle_list)
-    #print(r.isdribble)
+
+    #Set target based on obstacles, ball pos, robot pos
+
     target = plan(ball_pos, robot_pos, obstacle_list, plan_radius, 400, default_random=random_obstacle_clipping)
     thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
-    #print(isdribble)
     action = ActionCmd()
+
+    #Choose whether to shoot, drive to shooting range, or default behavior
     if isdribble and np.linalg.norm(opponent_goal - robot_pos) > shoot_range:
         target = plan(opponent_goal, robot_pos, obstacle_list, plan_radius, 400, default_random=random_obstacle_clipping)
         thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
@@ -83,11 +85,8 @@ def callback(data):
         action.shootPos = 1
         action.strength = 200
 
-    #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
-    # target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
-    # thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
 
-    # For plotting
+    # #For plotting
     # robot_position_x.append(robot_pos[0])
     # robot_position_y.append(robot_pos[1])
     # targets_generated_x.append(target[0])
@@ -98,7 +97,6 @@ def callback(data):
     target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
 
     #Generate ActionCmd() and publish to hwcontroller
-    #action = ActionCmd()
     action.target.x = target[0]
     action.target.y = target[1]
     action.maxvel = 300
@@ -110,14 +108,17 @@ def callback(data):
 
     #   # For plotting path and path plan of robot, after 100 pathing iterations
     # if len(targets_generated_x) > 100:
-    #     fig, ax = plt.subplots()
-    #     ax.scatter(targets_generated_x, targets_generated_y)
-    #     ax.scatter(robot_position_x, robot_position_y)
-    #     for i in range(len(targets_generated_x)):
-    #         ax.annotate(i, (targets_generated_x[i], targets_generated_y[i]))
-    #         ax.annotate(i, (robot_position_x[i], robot_position_y[i]))
-    #     for o in obstacle_list:
-    #         plot_circle(o[0], o[1], o[2])
+    #     plt.plot(targets_generated_x, targets_generated_y, 'g*--', label='Dynamically Generated Path Plan')
+    #     plt.plot(robot_position_x, robot_position_y, 'xr-', label='Actual Robot Path')
+    #     plt.legend()
+    #     # fig, ax = plt.subplots()
+    #     # ax.scatter(targets_generated_x, targets_generated_y)
+    #     # ax.scatter(robot_position_x, robot_position_y)
+    #     # for i in range(len(targets_generated_x)):
+    #     #     ax.annotate(i, (targets_generated_x[i], targets_generated_y[i]))
+    #     #     ax.annotate(i, (robot_position_x[i], robot_position_y[i]))
+    #     # for o in obstacle_list:
+    #     #     plot_circle(o[0], o[1], o[2])
     #     #print(targets_generated)
     #     plt.show()
     #     time.sleep(100)

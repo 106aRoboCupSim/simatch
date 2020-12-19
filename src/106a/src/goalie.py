@@ -13,11 +13,13 @@ import sys
 
 # Initialize publisher and rate
 pub = 0
+ROBOT_NAME = 'rival_goalie'
 if int(sys.argv[1]) == 0:
     pub = rospy.Publisher('/NuBot1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
+    ROBOT_NAME = 'NuBot_goalie'
 else: 
     pub = rospy.Publisher('/rival1/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
-rospy.init_node('pubsub', anonymous=True)
+rospy.init_node(ROBOT_NAME, anonymous=False)
 hertz = 10
 rate = rospy.Rate(hertz)
 
@@ -88,7 +90,6 @@ def callback(data):
     print(should_pass(off1_pos, robot_pos, obstacle_list))
 
     if isholding:
-        print("Here");
         t = np.array([-700, 0]) 
         target = plan(t, robot_pos, obstacle_list, 100, 400)
         thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
@@ -170,10 +171,7 @@ def callback(data):
         pub.publish(action)
         rate.sleep()
         pass
-        
-
-
-    
+            
 
 
 def listener():

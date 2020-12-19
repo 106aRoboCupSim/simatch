@@ -10,13 +10,9 @@ rospy.init_node('ball_manager', anonymous=True)
 
 
 def callback(data):
-    # r = data.robotinfo
-    # print(len(r))
     b = data.ballinfo
     ball_x = b.pos.x/100
     ball_y = b.pos.y/100
-    # print('ball_x: ' +str(ball_x))
-    # print('ball_y: ' +str(ball_y))
     sleeptime = 0
     if ball_x >= 11 and abs(ball_y) >= 1.25:
         time.sleep(sleeptime)
@@ -180,8 +176,6 @@ def callback(data):
         resetBall.pose.orientation.z = 0.0
         resetBall.pose.orientation.w = 0.0
         pub.publish(resetBall)
-
-    # rate.sleep()
 
 def listener():
     rospy.Subscriber("/NuBot1/omnivision/OmniVisionInfo", OminiVisionInfo, callback, queue_size=1)

@@ -68,11 +68,13 @@ def callback(data):
     obstacle_list = np.empty((0,3), float)
     for p in obstacles.pos:
         obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, obstacle_radius]])))
-    #print(obstacle_list)
-    #print(r.isdribble)
+
+
+    #Set target based on obstacles, ball pos, robot pos
     target = plan(ball_pos, robot_pos, obstacle_list, plan_radius, 400, default_random=False)
     thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
-    #print(isdribble)
+
+    #Choose whether to shoot, drive to shooting range, or default behavior
     action = ActionCmd()
     if isdribble and np.linalg.norm(opponent_goal - robot_pos) > shoot_range:
         target = plan(opponent_goal, robot_pos, obstacle_list, plan_radius, 400, default_random=False)
@@ -83,9 +85,6 @@ def callback(data):
         action.shootPos = 1
         action.strength = 200
 
-    #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
-    # target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
-    # thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
 
     # For plotting
     # robot_position_x.append(robot_pos[0])
@@ -98,7 +97,6 @@ def callback(data):
     target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
 
     #Generate ActionCmd() and publish to hwcontroller
-    #action = ActionCmd()
     action.target.x = target[0]
     action.target.y = target[1]
     action.maxvel = 300

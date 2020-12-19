@@ -10,15 +10,10 @@ rospy.init_node('ball_manager', anonymous=True)
 
 
 def callback(data):
-    # r = data.robotinfo
-    # print(len(r))
     b = data.ballinfo
     ball_x = b.pos.x/100
     ball_y = b.pos.y/100
-    # print('ball_x: ' +str(ball_x))
-    # print('ball_y: ' +str(ball_y))
     if abs(ball_x) >= 11 or abs(ball_y) >= 7:
-        #time.sleep(1.5)
         resetBall = ModelState()
         resetBall.model_name = 'football'
         resetBall.pose.position.x = 0.0
@@ -41,17 +36,6 @@ def callback(data):
         reset_nubot.pose.orientation.w = 0.0
         pub.publish(reset_nubot)
 
-        # for i in range(4):
-        #     reset_rival = ModelState()
-        #     reset_rival.model_name = 'rival' + str(i + 1)
-        #     reset_rival.pose.position.x = -6 + 2 * i
-        #     reset_rival.pose.position.y = 0
-        #     reset_rival.pose.position.z = 0.0
-        #     reset_rival.pose.orientation.x = 0.0
-        #     reset_rival.pose.orientation.y = 0.0
-        #     reset_rival.pose.orientation.z = 0.0
-        #     reset_rival.pose.orientation.w = 0.0
-        #     pub.publish(reset_rival)
 
 
 def listener():
