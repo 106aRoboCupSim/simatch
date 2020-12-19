@@ -7,6 +7,8 @@ from realtimepseudoAstar import plan
 from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo, BallIsHolding
 
+
+#Initialize desired x depending on obstacle number
 ROBOT_NAME = 'rival' + str(sys.argv[1])
 possible_x = [-600, -200, 200, 600]
 target_1 = np.array([possible_x[int(sys.argv[1]) - 1], -400])
@@ -26,9 +28,12 @@ rate = rospy.Rate(hertz)
 
 def callback(data):
 
+    #Receive all robot info    
     r = data.robotinfo[int(sys.argv[1]) - 1]
     robot_pos = np.array([r.pos.x, r.pos.y])
     theta = r.heading.theta
+
+    #Alternate between +y and -y target positions
 
     global current_target
 
