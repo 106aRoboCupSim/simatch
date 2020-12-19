@@ -1,0 +1,10 @@
+<launch>
+  <include file="launch/two_v_two_helper.launch"> </include>
+  <node name="cyan_robot" pkg="106a" type="nubot_controllers.sh"/>
+  <node name="magenta_robot" pkg="106a" type="robot_controllers.sh"/>
+  <node name="reset_ball_node" pkg="106a" type="reset_ball.py"></node>
+  <param name="robot_description"
+  command="$(find xacro)/xacro --inorder '$(find rrbot_description)/urdf/rrbot.xacro'" />
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="-urdf -model rrbot -param robot_description"/>
+</launch>

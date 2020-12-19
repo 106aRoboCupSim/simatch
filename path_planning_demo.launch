@@ -1,0 +1,10 @@
+<launch>
+  <include file="launch/path_planning_demo_helper.launch"> </include>
+  <node name="cyan_robot" pkg="106a" type="one_nubot.sh"/>
+  <node name="magenta_robot" pkg="106a" type="obstacle_controllers.sh"/>
+  <node name="reset_ball_node" pkg="106a" type="reset_path_planning_demo.py"></node>
+  <param name="robot_description"
+  command="$(find xacro)/xacro --inorder '$(find rrbot_description)/urdf/rrbot.xacro'" />
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+    args="-urdf -model rrbot -param robot_description"/>
+</launch>

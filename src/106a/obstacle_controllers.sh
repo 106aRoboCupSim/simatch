@@ -11,7 +11,7 @@ magenta_num=$(rosparam get /magenta/num)
 kill_num=0                                  
 
 ### spawn magenta robots
-for ((i=1; i<=1; ++i))
+for ((i=1; i<=magenta_num; ++i))
 do
     #rosrun nubot_control    nubot_control_node ${magenta_prefix}${i}   __name:=${magenta_prefix}_nubot_control${i} &
     #PIDS[kill_num]=$!
@@ -21,13 +21,30 @@ do
     #PIDS[kill_num]=$!
     #let "kill_num=kill_num+1"
    
-    rosrun 106a reset_ball.py &
+    rosrun nubot_hwcontroller    nubot_hwcontroller_node ${magenta_prefix}${i}   __name:=${magenta_prefix}_nubot_hwcontroller${i} &
     PIDS[kill_num]=$!
     let "kill_num=kill_num+1"
 
    sleep 0.5
 done 
 
+
+for ((i=1; i<=magenta_num; ++i))
+do
+    #rosrun nubot_control    nubot_control_node ${magenta_prefix}${i}   __name:=${magenta_prefix}_nubot_control${i} &
+    #PIDS[kill_num]=$!
+    #let "kill_num=kill_num+1"
+   
+    #rosrun world_model      world_model_node   ${magenta_prefix}${i}    __name:=${magenta_prefix}_world_model${i} &
+    #PIDS[kill_num]=$!
+    #let "kill_num=kill_num+1"
+   
+    rosrun 106a obstacle_brain.py ${i} &
+    PIDS[kill_num]=$!
+    let "kill_num=kill_num+1"
+
+   sleep 0.5
+done
 
 ######### Don't to use RTDB for convenience. Use "rostopic pub" to publish game control
 ########  info instead.

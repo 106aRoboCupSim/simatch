@@ -6,27 +6,22 @@ source devel/setup.bash
 ### Get parameters and init
 declare -i j
 declare -i kill_num
-magenta_prefix=$(rosparam get /magenta/prefix)
-magenta_num=$(rosparam get /magenta/num)
+cyan_prefix=$(rosparam get /cyan/prefix)
+cyan_num=$(rosparam get /cyan/num)
 kill_num=0                                  
 
-### spawn magenta robots
-for ((i=1; i<=1; ++i))
-do
-    #rosrun nubot_control    nubot_control_node ${magenta_prefix}${i}   __name:=${magenta_prefix}_nubot_control${i} &
-    #PIDS[kill_num]=$!
-    #let "kill_num=kill_num+1"
-   
-    #rosrun world_model      world_model_node   ${magenta_prefix}${i}    __name:=${magenta_prefix}_world_model${i} &
-    #PIDS[kill_num]=$!
-    #let "kill_num=kill_num+1"
-   
-    rosrun 106a reset_ball.py &
-    PIDS[kill_num]=$!
-    let "kill_num=kill_num+1"
 
-   sleep 0.5
-done 
+rosrun nubot_hwcontroller    nubot_hwcontroller_node ${cyan_prefix}1   __name:=${cyan_prefix}_nubot_hwcontroller1 &
+PIDS[kill_num]=$!
+let "kill_num=kill_num+1"
+
+sleep 0.5
+
+rosrun 106a solo_player_brain.py 1 0 &
+PIDS[kill_num]=$!
+let "kill_num=kill_num+1"
+
+sleep 0.5
 
 
 ######### Don't to use RTDB for convenience. Use "rostopic pub" to publish game control
@@ -39,12 +34,12 @@ done
 
 ### run coachinfo_publisher
 # j=2
-# rosrun  simulation_interface coach_robot_comm_RTDB ${magenta_prefix}${j} __name:=${magenta_prefix}_coach_robot_comm_RTDB &
+# rosrun  simulation_interface coach_robot_comm_RTDB ${cyan_prefix}${j} __name:=${cyan_prefix}_coach_robot_comm_RTDB &
 # PIDS[kill_num]=$!
 # let "kill_num=kill_num+1"
 
 ### run strategy_pub_node
-#rosrun simulation_interface strategy_pub_node ${magenta_prefix} __name:=${magenta_prefix}_strategy_pub &
+#rosrun simulation_interface strategy_pub_node ${cyan_prefix} __name:=${cyan_prefix}_strategy_pub &
 #PIDS[kill_num]=$!
 #let "kill_num=kill_num+1"
 
@@ -59,7 +54,7 @@ wait
 rosnode cleanup
 
 ### kill nodes
-#for ((i=1; i<=magenta_num; ++i))
+#for ((i=1; i<=cyan_num; ++i))
 #do
 #	j=$i+1 
 #	rosnode kill world_model${j}

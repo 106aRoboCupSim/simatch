@@ -15,6 +15,7 @@ if str(sys.argv[2]) == '1':
     ROBOT_NAME = 'rival' + str(sys.argv[1])
 opponent_goal = np.array([1100.0, 0.0])
 isdribble = 0
+#Init ball handlers
 ball_handler1 = (0, "NuBot1") 
 ball_handler2 = (0, "NuBot2") 
 ball_handler3 = (0, "NuBot3") 
@@ -26,7 +27,9 @@ shoot_range = 500
 
 
 #Bare minimum is 50
-obstacle_radius = 300
+obstacle_radius = 75
+plan_radius = 300
+random_obstacle_clipping = True
 
 if str(sys.argv[1]) == '2':
     my_id = 1
@@ -46,7 +49,7 @@ hertz = 10
 rate = rospy.Rate(hertz)
 #rate2 = rospy.Rate(1)
 
-# For plotting path and path plan
+# #For plotting path and path plan
 # targets_generated_x = []
 # targets_generated_y = []
 # robot_position_x = []
@@ -194,7 +197,6 @@ def callback(data):
 
 
     #Generate ActionCmd() and publish to hwcontroller
-    #action = ActionCmd()
     action.target.x = target[0]
     action.target.y = target[1]
     action.maxw = 300
@@ -206,14 +208,17 @@ def callback(data):
 
     #   # For plotting path and path plan of robot, after 100 pathing iterations
     # if len(targets_generated_x) > 100:
-    #     fig, ax = plt.subplots()
-    #     ax.scatter(targets_generated_x, targets_generated_y)
-    #     ax.scatter(my_position_x, my_position_y)
-    #     for i in range(len(targets_generated_x)):
-    #         ax.annotate(i, (targets_generated_x[i], targets_generated_y[i]))
-    #         ax.annotate(i, (my_position_x[i], my_position_y[i]))
-    #     for o in obstacle_list:
-    #         plot_circle(o[0], o[1], o[2])
+    #     plt.plot(targets_generated_x, targets_generated_y, 'g*--', label='Dynamically Generated Path Plan')
+    #     plt.plot(robot_position_x, robot_position_y, 'xr-', label='Actual Robot Path')
+    #     plt.legend()
+    #     # fig, ax = plt.subplots()
+    #     # ax.scatter(targets_generated_x, targets_generated_y)
+    #     # ax.scatter(robot_position_x, robot_position_y)
+    #     # for i in range(len(targets_generated_x)):
+    #     #     ax.annotate(i, (targets_generated_x[i], targets_generated_y[i]))
+    #     #     ax.annotate(i, (robot_position_x[i], robot_position_y[i]))
+    #     # for o in obstacle_list:
+    #     #     plot_circle(o[0], o[1], o[2])
     #     #print(targets_generated)
     #     plt.show()
     #     time.sleep(100)

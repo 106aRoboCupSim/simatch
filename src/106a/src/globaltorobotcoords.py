@@ -1,5 +1,7 @@
 import numpy as np
 
+#function to coordinate transform between global frame coordinates and robot frame coordinates
+
 def transform(t_global_x, t_global_y, r_global_x, r_global_y, theta):
     c = np.cos(theta)
     s = np.sin(theta)

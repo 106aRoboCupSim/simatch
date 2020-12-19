@@ -1,24 +1,34 @@
 #!/usr/bin/env python
 import rospy
 import sys
+import time
 import numpy as np
 from realtimepseudoAstar import plan
 from globaltorobotcoords import transform
 from nubot_common.msg import ActionCmd, VelCmd, OminiVisionInfo, BallInfo, ObstaclesInfo, RobotInfo, BallIsHolding
 
-ROBOT_NAME = 'rival' + str(sys.argv[1])
+ROBOT_NAME = 'NuBot' + str(sys.argv[1])
+if str(sys.argv[2]) == '1':
+    ROBOT_NAME = 'rival' + str(sys.argv[1])
 opponent_goal = np.array([1100.0, 0.0])
 isdribble = 0
+shoot_range = 500
+
+#Bare minimum is 50
+obstacle_radius = 150
+plan_radius = 500
+
+
 # For plotting
 # import math
 # import matplotlib.pyplot as plt
 
 # Initialize publisher and rate
 pub = rospy.Publisher('/' + str(ROBOT_NAME)+'/nubotcontrol/actioncmd', ActionCmd, queue_size=1)
-rospy.init_node(str(ROBOT_NAME) + '_planner', anonymous=False)
-hertz = 10
+rospy.init_node(str(ROBOT_NAME) + '_brain', anonymous=False)
+hertz = 20
 rate = rospy.Rate(hertz)
-
+#rate2 = rospy.Rate(1)
 
 # For plotting path and path plan
 # targets_generated_x = []
@@ -33,14 +43,20 @@ rate = rospy.Rate(hertz)
 #         yl = [y + size * math.sin(np.deg2rad(d)) for d in deg]
 #         plt.plot(xl, yl, color)
 
-def kick():
-    print('tried to kick')
-
 def callback(data):
-    
+
     #Get ball position in global frame
     b = data.ballinfo
     ball_pos = np.array([b.pos.x, b.pos.y])
+    if np.abs(ball_pos[0]) > 1100 and np.abs(ball_pos[1]) < 125:
+        action = ActionCmd()
+        action.target.x = 0
+        action.target.y = 0
+        action.maxvel = 0
+        pub.publish(action)
+        #print('sleeping')
+        time.sleep(1.5)
+        #rate2.sleep()
 
     #Get robot position and heading in global frame
     r = data.robotinfo[int(sys.argv[1]) - 1]
@@ -51,26 +67,24 @@ def callback(data):
     obstacles = data.obstacleinfo
     obstacle_list = np.empty((0,3), float)
     for p in obstacles.pos:
-        obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, 75]])))
+        obstacle_list = np.concatenate((obstacle_list, np.array([[p.x, p.y, obstacle_radius]])))
 
-    #print(r.isdribble)
-    target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
+
+    #Set target based on obstacles, ball pos, robot pos
+    target = plan(ball_pos, robot_pos, obstacle_list, plan_radius, 400, default_random=False)
     thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0]) - theta
-    #print(isdribble)
+
+    #Choose whether to shoot, drive to shooting range, or default behavior
     action = ActionCmd()
-    if isdribble and np.linalg.norm(opponent_goal - robot_pos) > 400:
-        target = plan(opponent_goal, robot_pos, obstacle_list, 100, 400)
+    if isdribble and np.linalg.norm(opponent_goal - robot_pos) > shoot_range:
+        target = plan(opponent_goal, robot_pos, obstacle_list, plan_radius, 400, default_random=False)
         thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
-        #print('dribble')
-    elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < 400:
+    elif isdribble and np.linalg.norm(opponent_goal - robot_pos) < shoot_range:
         thetaDes = thetaDes = np.arctan2(opponent_goal[1] - robot_pos[1], opponent_goal[0] - robot_pos[0]) - theta
         target = robot_pos
         action.shootPos = 1
         action.strength = 200
 
-    #Generate target position and heading in global frame from real-time psuedo A-star path planning algorithm
-    # target = plan(ball_pos, robot_pos, obstacle_list, 100, 400)
-    # thetaDes = np.arctan2(target[1] - robot_pos[1], target[0] - robot_pos[0])
 
     # For plotting
     # robot_position_x.append(robot_pos[0])
@@ -81,9 +95,8 @@ def callback(data):
     #Convert target from global coordinate frame to robot coordinate frame for use by hwcontroller
 
     target = transform(target[0], target[1], robot_pos[0], robot_pos[1], theta)
-    
+
     #Generate ActionCmd() and publish to hwcontroller
-    #action = ActionCmd()
     action.target.x = target[0]
     action.target.y = target[1]
     action.maxvel = 300
