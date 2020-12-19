@@ -1,0 +1,29 @@
+{
+    "configurations": [
+        {
+            "browse": {
+                "databaseFilename": "",
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "includePath": [
+                "/home/caspermax/simatch/devel/include/**",
+                "/opt/ros/kinetic/include/**",
+                "/home/caspermax/simatch/src/nubot_coach/src/include/**",
+                "/home/caspermax/simatch/src/robot_code/nubot_common/include/**",
+                "/home/caspermax/simatch/src/robot_code/nubot_control/include/**",
+                "/home/caspermax/simatch/src/robot_code/nubot_hwcontroller/include/**",
+                "/home/caspermax/simatch/src/realtime_tools/include/**",
+                "/home/caspermax/simatch/src/robot_code/simulation_interface/include/**",
+                "/home/caspermax/simatch/src/robot_code/world_model/include/**",
+                "/usr/include/**"
+            ],
+            "name": "ROS",
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "gnu11",
+            "cppStandard": "c++17",
+            "configurationProvider": "go2sh.cmake-integration"
+        }
+    ],
+    "version": 4
+}
